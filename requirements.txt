@@ -1,0 +1,11 @@
+cdsapi
+requests
+pandas
+numpy
+scikit-learn
+scipy
+pgeocode
+matplotlib
+seaborn
+meteostat
+folium

@@ -1,0 +1,95 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Environment variables
+.env
+.env.local
+
+# Especific
+
+# Credenciais (NUNCA ENVIAR)
+bots.py
+bots.json
+.cdsapirc
+.env
+
+# CAMS
+# Ignora as pastas de cópias e dados finais, mas mantém a estrutura se quiseres
+meteorology/CAMS/1day_copy/
+meteorology/CAMS/1month_copy/
+meteorology/CAMS/data_final/
+meteorology/CAMS/data_merged/
+metadados_cams.txt
+progress.json
+data_api_opt_bot.py
+
+# IPMA
+# Ignoramos o conteúdo, mas abrimos exceção para os ficheiros de base
+meteorology/IPMA/data_input/*
+!meteorology/IPMA/data_input/IPMA_stations.json
+!meteorology/IPMA/data_input/IPMA_stations.csv
+IPMA/data_final/
+
+# Population
+# Ignoramos os dados de treino/ML, mantemos apenas os oficiais
+population/populacao_total/data/*
+!population/populacao_total/data/populacao_total.csv
+!population/populacao_total/data/previsao_oficial_2025.csv
+
+# Outros
+data_merged/
+*.html
+__pycache__/

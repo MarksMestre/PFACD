@@ -1,0 +1,203 @@
+═══════════════════════════════════════════════════════════════════════════════════════════════════════════════
+                                      PONTO DE SITUAÇÃO - PFACD PROJECT
+═══════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────
+📊 DADOS METEOROLÓGICOS
+
+
+Resultado final dos : Estações com dados metereológicos provindos do CAMS e do Meteostat
+
+    Integração com os dados: Fazer join destes dados com as tabelas da E-REDES 
+                                o join pode ser de uma das seguinte formas:
+        Forma A:
+                
+            1. Fazer join com estações do mesmo Distrito
+            2. Fazer join com estações do mesmo Concelho. Caso o passo anterior tenha sido concluído, ou seja, 
+                uma dada linha já tenha estação através do Distrito, damos overwrite ou seja, damos prioridade ao Concelho
+            3. Criar um dataset auxiliar para linhas da E-REDES que tenham mais de uma estação atribuída e resolver conforme
+            4. Criar um dataset auxiliar de linhas que NÃO TENHAM estações e resolver conforme
+
+        Forma B:
+            1. Obter os centróides de cada Código Postal do df da E-Redes e calcular o haversine da distância às estações
+                Uma dada linha da E-REDES fica com a estação cujo cálculo seja mais próximo
+
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+🌤️  CAMS - RADIATION DATA (Copernicus Atmosphere Monitoring Service)
+    
+    STATUS: Processamento Ativo | Integração com dados locais em progresso
+    
+    ✅ CONCLUÍDO:
+        • Recolha de dados via API CAMS bem-sucedida
+        • Pipeline de processamento diário e mensal implementado (process_time_and_concat_api.py)
+        • Consolidação de dados em merged.csv para períodos de 1 dia e 1 mês
+        • Transformação temporal customizada (ano, mês, trimestre, semestre, data)
+    
+    📊 VARIÁVEIS METEOROLÓGICAS PROCESSADAS:
+        • Radiação Solar: GHI, BHI, DHI, BNI (Global, Beam, Diffuse, Direct Normal Irradiance)
+        • Radiação em céu limpo: Clear sky GHI, Clear sky BHI, Clear sky DHI, Clear sky BNI
+        • TOA (Top-of-Atmosphere) radiation
+        • Confiabilidade dos dados (Reliability indicator)
+    
+    🔄 EM DESENVOLVIMENTO:
+        • aggregation_day.py: Transformação de dados horários para agregações diárias/mensais
+            ↳ Métricas computadas: sum, mean, std (desvio padrão), min, max
+            ↳ Coeficiente de Variação (CV) para análise de variabilidade
+            ↳ Índice de Claridade (Clearness Index) = GHI_sum / TOA_sum
+            ↳ Agregações por período: dia, mês, trimestre, semestre
+    
+    ⏳ PENDENTE:
+        • Finalização da integração com dados IPMA locais
+        ✅ Consolidação dataset final em data_final/ folder
+        • Validação de qualidade Cross-dataset CAMS vs IPMA
+
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+🏢 IPMA - ESTAÇÕES METEOROLÓGICAS NACIONAIS (Instituto Português do Mar e da Atmosfera)
+
+    CONTEXTO:
+    Fomos buscar à API do IPMA dados sobre as estações. Conseguimos dados sobre 221 estações. 
+    Os dados adquiridos foram suficientes para calcular dados sobre a radiação solar a partir da API da base de dados Europeia "CAMS".
+    Não foram suficientes para calcular dados sobre temperatura e etc. Então, foi alcançada uma base de dados oficial do IPMA com 
+                                                        dados de altitude (tivemos de dar merge com os dados anteriormente recolhidos) [1]
+
+    Altitude => Irá ser usada para, com a biblioteca do Meteostat, se alcançar dados como a temperatura média, minima....
+
+    Problema: O Merge descrito no passo [1] está com problemas que precisam de ser resolvidos à mão:
+        - O Merge foi dado com base na similaridade de strings entre os nomes da base de dados da API e da tabela oficial do IPMA e 
+                           com base na distânica entre as coordenadas obtidas em cada uma das bases de dados 
+                        (foi usada a fórmula do haversine própria para cálculos de distâncias em coordenadas GPS na Terra)
+
+        Solução:
+            - IPMA_stations_dont_match.csv: estes vão ser os mais chatos. Temos de ir uma a uma e, com o GPS que temos, 
+                                                                                            localizar o sítio e retirar:
+
+                - Concelho/Municipio (temos formas automatizadas para fazer isto, mas já que temos de ir em busca da altitude, nao custa nada)
+                - Distrito 
+                - Altitude
+            - IPMA_stations_conflict.csv: estes são mais tranquilos. São poucos e para além de serem poucos é só confirmar as coordenadas
+                                                                    E que os nomes são os mesmos
+    
+    STATUS: Validação e Consolidação | Conflitos em investigação
+    
+    ✅ CONCLUÍDO:
+        • Extração de 221 estações meteorológicas da API do IPMA com sucesso
+        • Enriquecimento geográfico: Latitude, Longitude, Postal Code, Concelho, Distrito
+            ↳ Utilizado pgeocode para adicionar informação local detalhada (create_local_info_IPMA.py)
+        • Mapping entre estações (API vs Dados Oficiais)
+            ↳ Algoritmo: Similaridade de nomes + Distância geográfica (Haversine)
+            ↳ Arredondamento de coordenadas a 2 casas decimais para match robusto
+    
+    📁 DATASETS GERADOS:
+        ✓ IPMA_stations.csv (221 estações - base inicial da API)
+        ✓ IPMA_stations_with_location_info.csv (enriquecimento geográfico)
+        ✓ IPMA_stations_data_oficial.csv (dados oficiais)
+        ✓ IPMA_stations_data_oficial_corrected.csv (Lat/Lon corrigidas - estavam invertidas)
+    
+    🔄 PROCESSAMENTO ATIVO (merge_oficial_local_info.py):
+        • Comparação de nomes entre datasets API e Oficial
+        • Cálculo de distâncias e similaridade de strings
+        • Detecção de conflitos e casos de não-correspondência
+    
+    ⚠️  CONFLITOS A RESOLVER:
+        • IPMA_stations_dont_match.csv: Estações presentes em um dataset mas não no outro
+        • IPMA_stations_conflict.csv: Estações com informações contraditórias (múltiplos matches)
+        → AÇÃO: Análise manual de conflitos e validação de coordenadas
+
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+
+
+
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────
+👥 DADOS DEMOGRÁFICOS
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+📈 POPULAÇÃO TOTAL - PREVISÃO 2025
+
+Resultado final: Obter dados sobre a população total de um determinado concelho para a previsão pretendida
+
+Integração com os dados da E-REDES:
+    - Left join com os concelhos
+
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────
+    STATUS: Pipeline completo implementado | Modelos treinados | Previsões geradas
+    
+    🔧 ARQUITETURA DO PIPELINE:
+        1. Data Preparation (data_preparation.py)
+           ↳ Limpeza e normalização dos dados demográficos (1982-2024)
+           ↳ Tratamento de valores faltantes e caracteres especiais
+           ↳ Mapeamento NUTS 2021 → NUTS 2024
+           ↳ Criação de features lags (pop_lag_1, pop_lag_2, pop_lag_3, pop_lag_4)
+           ↳ Cálculo de velocidades e acelerações de variação populacional
+           ↳ Geração de pesos descritivos por território
+           ↳ Output: ml_data.csv (dataset machine learning pronto)
+        
+        2. Prediction & Validation (prediction_and_validation.py)
+           ↳ Modelo: Random Forest Regressor
+           ↳ Validação: TimeSeriesSplit (5-fold temporal cross-validation)
+           ↳ Métricas avaliadas:
+              • R² Score (coeficiente de determinação)
+              • MAE arredondado (erro absoluto médio em habitantes)
+              • MAPE arredondado (erro percentual absoluto médio)
+           ↳ Feature Importance: Identificação das variáveis mais influentes
+           ↳ Output: prediction.csv com previsões para 2025
+        
+        3. Results Visualization (results_visualization.py)
+           ↳ Merge dos resultados com dados históricos (2013-2024)
+           ↳ Cálculo automático de totais NUTS3 a partir de municípios
+           ↳ Output: populacao_com_previsao_2025.csv (dataset final com histórico + previsão)
+    
+    ✅ DADOS DISPONÍVEIS:
+        ✓ populacao_total_nuts2021.csv (classificação antiga)
+        ✓ populacao_total_nuts2024.csv (classificação atual)
+        ✓ populacao_total_weights.csv (com pesos e features)
+        ✓ ml_data.csv (features engineered para modelos)
+        ✓ previsao_oficial_2025.csv (baseline oficial para comparação)
+        ✓ prediction.csv (previsões modelo RandomForest)
+        ✓ populacao_com_previsao_2025.csv (resultado final consolidado)
+    
+    📊 ESTRUTURA HIERÁRQUICA:
+        • Nível Nacional (Portugal)
+        • Nível NUTS3 (Regiões: Algarve, Norte, Centro, Açores, Madeira, AML, etc)
+        • Nível Municipal (todas as sedes de município)
+    
+    🎯 QUALIDADE DO MODELO:
+        • Cross-validation com TimeSeriesSplit garante robustez temporal
+        • Métricas arredondadas refletem acurácia em "habitantes"
+        • Feature Importance revela drivers principais da dinâmica populacional
+
+─────────────────────────────────────────────────────────────────────────────────────────────────════════════
+
+📈 DENSIDADE POPULACIONAL - PREVISÃO 2025
+
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+
+
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+📦 DEPENDÊNCIAS DO PROJETO
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Instaladas (requirements.txt):
+        • cdsapi (Copernicus Data Store API)
+        • requests (HTTP requests)
+        • pandas (Data manipulation)
+        • numpy (Numerical computing)
+        • scikit-learn (Machine Learning - RandomForest, TimeSeriesSplit)
+        • scipy (Advanced math - KDTree for spatial queries)
+        • pgeocode (Reverse geocoding via OpenStreetMap)
+        • matplotlib & seaborn (Visualizations)
+        • meteostat (Alternative meteorological data source)
+
+═════════════════════════════════════════════════════════════════════════════════════════════════════════════
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
