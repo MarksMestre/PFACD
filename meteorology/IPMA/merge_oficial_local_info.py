@@ -151,88 +151,90 @@ def merge_dfs(stations_df_input, corrected_df_input):
 
 def create_maps(df, output_file, distance):
     if df.empty:
-        print("Não existem conflitos para mapear.")
+        print("Não existem dados para mapear.")
         return
 
-    
     mapa = folium.Map(
         location=[df['latitude'].mean(), df['longitude'].mean()], 
         zoom_start=7,
         tiles='CartoDB Positron'
     )
 
-    if distance:
+    for _, row in df.iterrows():
+        p_api = [row['latitude'], row['longitude']]
+        p_oficial = [row['latitude_oficial'], row['longitude_oficial']]
+        
+       
 
-        for _, row in df.iterrows():
-            p_api = [row['latitude'], row['longitude']]
-            p_oficial = [row['latitude_oficial'], row['longitude_oficial']]
-            distancia = row['distancia_erro_m']
-
-            # 1. Marcadores de Pontos (API e Oficial)
-            folium.CircleMarker(location=p_api, radius=6, color='red', fill=True, fill_opacity=0.7).add_to(mapa)
-            folium.CircleMarker(location=p_oficial, radius=6, color='blue', fill=True, fill_opacity=0.7).add_to(mapa)
-
-            # 2. Etiquetas de Nome e ID
-            folium.Marker(
-                location=p_api,
-                icon=DivIcon(
-                    icon_size=(150,36), icon_anchor=(0,0),
-                    html=f'<div style="font-size: 9pt; color: red; font-weight: bold;">ID: {row["idEstacao"]}<br>{row["localEstacao"]}</div>'
-                )
+        if distance:
+            # Construção do Quadro de Detalhes Unificado (HTML)
+            conteudo_html = f"""
+            <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; width: 280px; line-height: 1.5;">
+                <h4 style="margin-top: 0; color: #2c3e50; border-bottom: 2px solid #ecf0f1; padding-bottom: 5px;">
+                    Detalhes da Estação
+                </h4>
+                <table style="width: 100%; font-size: 12px; border-collapse: collapse;">
+                    <tr><td><b>ID:</b></td><td>{row['idEstacao']})</td></tr>
+                    <tr><td><b>Local:</b></td><td>{row['localEstacao']}</td></tr>
+                    <tr style="background-color: #f9f9f9;"><td><b>Município:</b></td><td>{row.get('Municipio', 'N/A')}</td></tr>
+                    <tr style="background-color: #f9f9f9;"><td><b>Distrito:</b></td><td>{row.get('Distrito', 'N/A')}</td></tr>
+                    <tr><td colspan="2" style="padding-top: 8px;"><b>Coordenadas API:</b><br>
+                        <code style="color: #c0392b;">{row['latitude']:.5f}, {row['longitude']:.5f}</code></td></tr>
+                    <tr><td colspan="2" style="padding-top: 5px;"><b>Coordenadas Oficiais:</b><br>
+                        <code style="color: #2980b9;">{row['latitude_oficial']:.5f}, {row['longitude_oficial']:.5f}</code></td></tr>
+                </table>
+                <div style="margin-top: 10px; padding: 5px; background-color: #fcf3cf; border: 1px solid #f1c40f; border-radius: 4px; text-align: center;">
+                    <b>Distância entre pontos:</b> {row['distancia_erro_m']:.2f} m
+                </div>
+            </div>
+            """
+            
+            popup_config = folium.Popup(conteudo_html, max_width=300)
+            # Ponto API (Vermelho)
+            folium.CircleMarker(
+                location=p_api, radius=7, color='red', fill=True, fill_opacity=0.7,
+                popup=popup_config, tooltip="Clique para ver detalhes"
             ).add_to(mapa)
 
-            folium.Marker(
-                location=p_oficial,
-                icon=DivIcon(
-                    icon_size=(150,36), icon_anchor=(0,20),
-                    html=f'<div style="font-size: 9pt; color: blue; font-weight: bold;">{row["Nome_oficial"]}</div>'
-                )
+            # Ponto Oficial (Azul)
+            folium.CircleMarker(
+                location=p_oficial, radius=7, color='blue', fill=True, fill_opacity=0.7,
+                popup=popup_config, tooltip="Clique para ver detalhes"
             ).add_to(mapa)
 
-            # 3. Linha Tracejada
+            # Linha de ligação
             folium.PolyLine(
-                locations=[p_api, p_oficial], color='black', weight=2, dash_array='5'
+                locations=[p_api, p_oficial], color='black', weight=1.5, dash_array='5', opacity=0.5
             ).add_to(mapa)
 
-            # 4. CÁLCULO E ETIQUETA DA DISTÂNCIA (No ponto médio da linha)
-            ponto_medio = [
-                (p_api[0] + p_oficial[0]) / 2,
-                (p_api[1] + p_oficial[1]) / 2
-            ]
-
-            folium.Marker(
-                location=ponto_medio,
-                icon=DivIcon(
-                    icon_size=(80,20),
-                    icon_anchor=(40,10), # Centraliza o texto sobre o ponto
-                    html=f'<div style="font-size: 8pt; color: black; background-color: white; border: 1px solid black; '
-                        f'border-radius: 3px; text-align: center; font-weight: bold; padding: 1px;">'
-                        f'{distancia:.0f} m</div>',
-                )
+        else:
+            
+                # Construção do Quadro de Detalhes Unificado (HTML)
+            conteudo_html = f"""
+            <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; width: 280px; line-height: 1.5;">
+                <h4 style="margin-top: 0; color: #2c3e50; border-bottom: 2px solid #ecf0f1; padding-bottom: 5px;">
+                    Detalhes da Estação
+                </h4>
+                <table style="width: 100%; font-size: 12px; border-collapse: collapse;">
+                    <tr><td><b>ID:</b></td><td>{row['idEstacao']}</td></tr>
+                    <tr><td><b>Local:</b></td><td>{row['localEstacao']}</td></tr>
+                    <tr style="background-color: #f9f9f9;"><td><b>Município:</b></td><td>{row.get('Municipio', 'N/A')}</td></tr>
+                    <tr style="background-color: #f9f9f9;"><td><b>Distrito:</b></td><td>{row.get('Distrito', 'N/A')}</td></tr>
+                    <tr><td colspan="2" style="padding-top: 8px;"><b>Coordenadas API:</b><br>
+                        <code style="color: #c0392b;">{row['latitude']:.5f}, {row['longitude']:.5f}</code></td></tr>
+                </table>
+            </div>
+            """
+            
+            popup_config = folium.Popup(conteudo_html, max_width=300)
+            # Apenas Ponto Oficial (Azul)
+            folium.CircleMarker(
+                location=p_api, radius=7, color='red', fill=True, fill_opacity=0.7,
+                popup=popup_config
             ).add_to(mapa)
-    
-    else:
-
-        for _, row in df.iterrows():
-            p_oficial = [row['latitude_oficial'], row['longitude_oficial']]
-
-
-            folium.CircleMarker(location=p_oficial, radius=6, color='blue', fill=True, fill_opacity=0.7).add_to(mapa)
-
-
-            folium.Marker(
-                location=p_oficial,
-                icon=DivIcon(
-                    icon_size=(150,36), icon_anchor=(0,20),
-                    html=f'<div style="font-size: 9pt; color: blue; font-weight: bold;">{row["Nome_oficial"]}</div>'
-                )
-            ).add_to(mapa)
-
-
 
     mapa.save(output_file)
-    print(f"✅ Mapa salvo com distâncias em: {output_file}")
-
+    print(f"✅ Mapa gerado com quadros detalhados em: {output_file}")
 
 def main():
     stations_df = pd.read_csv(IPMA_STATIONS_CSV, sep=",")
