@@ -1,0 +1,215 @@
+Nome_oficial,Tipo,Longitude,Latitude,Altitude,Municipio,Distrito,Inicio de Servico
+Flores / Aeroporto,Estação Automática Principal (EMA I),-31.1308,39.4573,28,Santa Cruz das Flores,Ilha das Flores,13/01/1998
+Corvo / Aeroporto,Estação Automática Principal (EMA I),-31.1129,39.6708,16,Corvo,Ilha do Corvo,31/08/2002
+Pico / Aeródromo,Estação Automática Principal (EMA I),-28.4433,38.5515,38,Madalena,Ilha do Pico,31/08/2002
+Horta / Aeroporto,Estação Automática Principal (EMA I),-28.7128,38.5211,40,Horta,Ilha do Faial,31/05/2022
+Horta / Observatório Príncipe Alberto Do Mónaco,Estação Automática Principal (EMA I),-28.6286,38.5298,55,Horta,Ilha do Faial,11/10/1997
+Graciosa / Aeródromo,Estação Automática Principal (EMA I),-28.03,39.0913,23,Santa Cruz da Graciosa,Ilha da Graciosa,12/05/2002
+São Jorge / Aeródromo,Estação Automática Principal (EMA I),-28.1696,38.6652,103,Velas,Ilha de São Jorge,13/09/2012
+Angra Do Heroísmo / Observatório José Agostinho,Estação Automática Principal (EMA I),-27.2243,38.6599,90,Angra do Heroísmo,Ilha Terceira,01/01/1999
+Ponta Delgada / Nordela,Estação Automática Principal (EMA I),-25.708,37.7442,75,Ponta Delgada,Ilha de São Miguel,01/01/1999
+Santa Maria / Aeroporto,Estação Automática Principal (EMA I),-25.1728,36.9732,92,Vila do Porto,Ilha de Santa Maria,31/08/2002
+Santa Catarina / Aeroporto,Estação Automática Principal (EMA I),-16.7762,32.6932,58,Santa Cruz,Ilha da Madeira (Madeira),01/12/2014
+Funchal / Observatório,Estação Automática Principal (EMA I),-16.8925,32.6475,58,Funchal,Ilha da Madeira (Madeira),16/10/1997
+Porto Santo / Aeroporto,Estação Automática Principal (EMA I),-16.3485,33.0715,82,Porto Santo,Ilha de Porto Santo (Madeira),01/01/1999
+Cabo Carvoeiro / Farol,Estação Automática Principal (EMA I),-9.407,39.3614,30,Peniche,Leiria,09/07/1997
+Sagres / Quartel Da Marinha,Estação Automática Principal (EMA I),-8.9489,37.0128,22,Vila do Bispo,Faro,08/06/1997
+Lisboa / Geofísico,Estação Automática Principal (EMA I),-9.1497,38.7191,77,Lisboa,Lisboa,17/03/1999
+Sines / Monte Chãos,Estação Automática Principal (EMA I),-8.838,37.9545,97,Sines,Setúbal,01/07/1997
+Porto / Pedras Rubras,Estação Automática Principal (EMA I),-8.6791,41.2322,67,Matosinhos,Porto,01/06/1998
+Coimbra / Aeródromo,Estação Automática Principal (EMA I),-8.4685,40.1576,170,Coimbra,Coimbra,16/07/1997
+Viana Do Castelo / Chafé,Estação Automática Principal (EMA I),-8.8048,41.6488,47,Viana do Castelo,Viana do Castelo,24/03/2006
+Faro / Aeroporto,Estação Automática Principal (EMA I),-7.9672,37.0132,2,Faro,Faro,03/07/1997
+Évora/Centro Coordenador,Estação Automática Principal (EMA I),-7.888,38.5365,247,Évora,Évora,30/06/1997
+Viseu / Aeródromo,Estação Automática Principal (EMA I),-7.8875,40.7264,627,Viseu,Viseu,23/07/2020
+Viseu/Centro Coordenador,Estação Automática Principal (EMA I),-7.8959,40.7148,644,Viseu,Viseu,25/06/1997
+Beja,Estação Automática Principal (EMA I),-7.8676,38.0257,248,Beja,Beja,02/07/1997
+Vila Real/Centro Coordenador,Estação Automática Principal (EMA I),-7.7171,41.2742,561,Vila Real,Vila Real,26/06/1997
+Penhas Douradas / Observatório,Estação Automática Principal (EMA I),-7.5587,40.4113,1379,Manteigas,Guarda,08/07/1997
+Castelo Branco,Estação Automática Principal (EMA I),-7.4787,39.8395,381,Castelo Branco,Castelo Branco,21/03/1998
+Portalegre,Estação Automática Principal (EMA I),-7.4212,39.2942,596,Portalegre,Portalegre,30/06/1997
+Bragança,Estação Automática Principal (EMA I),-6.7428,41.8038,690,Bragança,Bragança,01/06/1998
+Bragança/Aeródromo,Estação Automática Principal (EMA I),-6.7058,41.8573,685,Bragança,Bragança,04/11/2020
+Évora Aeródromo,Estação Automática Principal (EMA I),-7.8916,38.5296,245,Évora,Évora,25/10/2024
+Ponta Delgada / Observatório Afonso Chaves,Estação Automática Climatológica (EMA II),-25.6626,37.7466,34,Ponta Delgada,Ilha de São Miguel,25/11/2009
+São Miguel / Pico Santos De Cima,Estação Automática Climatológica (EMA II),-25.7512,37.819,821,Ponta Delgada,Ilha de São Miguel,18/10/2023
+Selvagem Grande,Estação Automática Climatológica (EMA II),-15.871,30.1454,150,Funchal,Ilha da Madeira (Madeira),23/08/2016
+Coruche Cruz Do Leão,Estação Automática Climatológica (EMA II),-8.4001,39.071,166,Coruche,Santarém,29/09/2023
+Loulé Cavalos do Caldeirão,Estação Automática Climatológica (EMA II),-7.9535,37.3041,585,Loulé,Faro,01/10/2023
+Odemira/S.Teotónio,Estação Automática Climatológica (EMA II),-8.7289,37.547,120,Odemira,Beja,01/10/1999
+Lisboa/Relógio,Estação Automática Climatológica (EMA II),-9.1254,38.7618,114,Lisboa,Lisboa,02/04/2020
+Vila Nova De Cerveira / Aeródromo,Estação Automática Climatológica (EMA II),-8.6762,41.9732,37,Vila Nova de Cerveira,Viana do Castelo,01/12/2000
+Monção / Valinha,Estação Automática Climatológica (EMA II),-8.381,42.0733,86,Monção,Viana do Castelo,21/04/1997
+Lamas De Mouro,Estação Automática Climatológica (EMA II),-8.1987,42.0431,881,Melgaço,Viana do Castelo,02/11/2000
+Montalegre,Estação Automática Climatológica (EMA II),-7.7879,41.8228,1005,Montalegre,Vila Real,05/04/1999
+Vinhais,Estação Automática Climatológica (EMA II),-7.0039,41.8434,773,Vinhais,Bragança,27/08/2010
+Ponte De Lima / Escola Agrícola,Estação Automática Climatológica (EMA II),-8.5713,41.7637,42,Ponte de Lima,Viana do Castelo,12/12/1999
+Chaves / Aeródromo,Estação Automática Climatológica (EMA II),-7.4654,41.7252,353,Chaves,Vila Real,24/04/1997
+Cabril / S. Lourenço,Estação Automática Climatológica (EMA II),-8.0269,41.7098,568,Montalegre,Vila Real,30/07/1998
+Braga / Merelim,Estação Automática Climatológica (EMA II),-8.4511,41.5758,68,Braga,Braga,28/04/1997
+Guimarães,Estação Automática Climatológica (EMA II),-8.3178,41.4289,173,Guimarães,Braga,23/11/2022
+Cabeceiras De Basto,Estação Automática Climatológica (EMA II),-7.9795,41.4889,223,Cabeceiras de Basto,Braga,01/11/2000
+Mirandela,Estação Automática Climatológica (EMA II),-7.1908,41.5148,247,Mirandela,Bragança,03/11/1999
+Macedo De Cavaleiros / Izeda-Morais,Estação Automática Climatológica (EMA II),-6.7873,41.5677,702,Macedo de Cavaleiros,Bragança,07/12/2001
+Miranda Do Douro,Estação Automática Climatológica (EMA II),-6.2715,41.4988,693,Miranda do Douro,Bragança,01/11/1999
+Mogadouro,Estação Automática Climatológica (EMA II),-6.7263,41.3351,644,Mogadouro,Bragança,30/11/1999
+Paços De Ferreira,Estação Automática Climatológica (EMA II),-8.3801,41.2737,287,Paços de Ferreira,Porto,05/07/2017
+Carrazêda De Ansiães,Estação Automática Climatológica (EMA II),-7.2993,41.243,715,Carrazeda de Ansiães,Bragança,21/12/2001
+Porto / S.Gens,Estação Automática Climatológica (EMA II),-8.6445,41.1844,89,Matosinhos,Porto,01/02/2012
+Moncorvo,Estação Automática Climatológica (EMA II),-7.0185,41.1899,539,Torre de Moncorvo,Bragança,07/12/2001
+Pinhão,Estação Automática Climatológica (EMA II),-7.549,41.1728,130,São João da Pesqueira,Viseu,30/11/2009
+Luzim,Estação Automática Climatológica (EMA II),-8.249,41.1459,287,Penafiel,Porto,22/12/2009
+Moimenta Da Beira,Estação Automática Climatológica (EMA II),-7.6039,40.9857,715,Moimenta da Beira,Viseu,07/12/2001
+Trancoso / Bandarra,Estação Automática Climatológica (EMA II),-7.3574,40.7812,840,Trancoso,Guarda,01/01/2000
+Arouca,Estação Automática Climatológica (EMA II),-8.2693,40.9269,269,Arouca,Aveiro,18/11/2013
+Figueira De Castelo Rodrigo / V.Torpim,Estação Automática Climatológica (EMA II),-6.9408,40.8303,635,Figueira de Castelo Rodrigo,Guarda,03/11/1999
+Guarda,Estação Automática Climatológica (EMA II),-7.2787,40.5286,1001,Guarda,Guarda,01/10/1999
+Nelas,Estação Automática Climatológica (EMA II),-7.8555,40.5235,425,Nelas,Viseu,01/06/1998
+Pampilhosa Da Serra,Estação Automática Climatológica (EMA II),-7.9271,40.1455,835,Pampilhosa da Serra,Coimbra,01/12/2001
+Covilhã,Estação Automática Climatológica (EMA II),-7.4822,40.2643,482,Covilhã,Castelo Branco,24/12/1999
+Aldeia Souto / Quinta Lageosa,Estação Automática Climatológica (EMA II),-7.3893,40.3543,468,Covilhã,Castelo Branco,21/01/2010
+Lousã / Aeródromo,Estação Automática Climatológica (EMA II),-8.2448,40.144,193,Lousã,Coimbra,01/06/1998
+Fundão,Estação Automática Climatológica (EMA II),-7.5036,40.1406,493,Fundão,Castelo Branco,21/01/2010
+Aveiro / Universidade,Estação Automática Climatológica (EMA II),-8.6598,40.6353,3,Aveiro,Aveiro,19/05/1997
+Dunas De Mira,Estação Automática Climatológica (EMA II),-8.7616,40.446,14,Mira,Coimbra,01/02/2012
+Anadia / Estação Vitivinícola Da Bairrada,Estação Automática Climatológica (EMA II),-8.4399,40.4388,52,Anadia,Aveiro,29/12/1999
+Coimbra / Bencanta,Estação Automática Climatológica (EMA II),-8.4552,40.2134,26,Coimbra,Coimbra,17/06/2009
+Figueira Da Foz / Vila Verde,Estação Automática Climatológica (EMA II),-8.8059,40.1398,4,Figueira da Foz,Coimbra,01/11/2000
+Ansião,Estação Automática Climatológica (EMA II),-8.41,39.8976,396,Ansião,Leiria,01/12/2000
+Leiria / Aeródromo,Estação Automática Climatológica (EMA II),-8.8209,39.7806,42,Leiria,Leiria,29/12/2007
+São Pedro De Moel,Estação Automática Climatológica (EMA II),-9.0306,39.7634,32,Marinha Grande,Leiria,06/01/2010
+Tomar / Vale Donas,Estação Automática Climatológica (EMA II),-8.3739,39.5921,75,Tomar,Santarém,15/04/1997
+Alcobaça / Estação Fruticultura Vieira Natividade,Estação Automática Climatológica (EMA II),-8.9692,39.5481,35,Alcobaça,Leiria,15/04/1997
+Rio Maior / Etar,Estação Automática Climatológica (EMA II),-8.9236,39.3139,52,Rio Maior,Santarém,15/04/1997
+Santarém / Fonte Boa Est. Zootécnica,Estação Automática Climatológica (EMA II),-8.7368,39.2013,71,Santarém,Santarém,01/06/1997
+Chamusca / Chouto,Estação Automática Climatológica (EMA II),-8.3508,39.27,115,Chamusca,Santarém,23/11/2022
+Torres Vedras / Dois Portos,Estação Automática Climatológica (EMA II),-9.1794,39.0439,111,Torres Vedras,Lisboa,24/06/1999
+Arruda Dos Vinhos,Estação Automática Climatológica (EMA II),-9.0794,38.9829,122,Arruda dos Vinhos,Lisboa,23/02/2018
+Coruche / Estação De Regadio,Estação Automática Climatológica (EMA II),-8.5131,38.9416,18,Coruche,Santarém,19/04/1997
+Santa Cruz / Aeródromo,Estação Automática Climatológica (EMA II),-9.3789,39.1257,40,Torres Vedras,Lisboa,30/12/2009
+Cabo Da Roca,Estação Automática Climatológica (EMA II),-9.4975,38.7816,141,Sintra,Lisboa,15/01/2013
+Sintra / Tapada do Mouco,Estação Automática Climatológica (EMA II),-9.4004,38.7817,416,Sintra,Lisboa,03/02/2025
+Lisboa / Tapada Da Ajuda,Estação Automática Climatológica (EMA II),-9.1828,38.7097,69,Lisboa,Lisboa,28/01/2010
+Cabo Raso / Farol,Estação Automática Climatológica (EMA II),-9.4854,38.709,7,Cascais,Lisboa,27/05/1997
+Barreiro / Lavradio,Estação Automática Climatológica (EMA II),-9.0476,38.6745,6,Barreiro,Setúbal,14/04/1997
+Pegões,Estação Automática Climatológica (EMA II),-8.635,38.6508,76,Palmela,Setúbal,01/02/2012
+Setúbal / Estação De Fruticultura,Estação Automática Climatológica (EMA II),-8.8908,38.5485,18,Setúbal,Setúbal,01/06/1997
+Almada/Praia Da Rainha,Estação Automática Climatológica (EMA II),-9.2129,38.617,5,Almada,Setúbal,30/11/2001
+Alcácer Do Sal/Barrosinha,Estação Automática Climatológica (EMA II),-8.4818,38.364,27,Alcácer do Sal,Setúbal,01/06/1997
+Alvalade,Estação Automática Climatológica (EMA II),-8.3944,37.9468,46,Santiago do Cacém,Setúbal,14/04/1997
+Ourique / Santana Da Serra,Estação Automática Climatológica (EMA II),-8.3018,37.5025,204,Ourique,Beja,23/11/2022
+Zambujeira,Estação Automática Climatológica (EMA II),-8.7429,37.582,66,Odemira,Beja,05/02/2010
+Aljezur,Estação Automática Climatológica (EMA II),-8.8016,37.3255,11,Aljezur,Faro,24/12/2001
+Fóia,Estação Automática Climatológica (EMA II),-8.5957,37.3143,895,Monchique,Faro,18/01/2011
+Sabugal / Martim Rei,Estação Automática Climatológica (EMA II),-7.0476,40.3362,844,Sabugal,Guarda,01/01/2000
+Zebreira,Estação Automática Climatológica (EMA II),-7.0686,39.8496,374,Idanha-A-Nova,Castelo Branco,01/01/2000
+Proença-A-Nova / Moitas,Estação Automática Climatológica (EMA II),-7.8755,39.7334,414,Proença-A-Nova,Castelo Branco,15/04/1997
+Alvega,Estação Automática Climatológica (EMA II),-8.027,39.4611,51,Abrantes,Santarém,01/11/1999
+Avis/Benavila,Estação Automática Climatológica (EMA II),-7.8775,39.1068,152,Avis,Portalegre,14/11/1999
+Mora,Estação Automática Climatológica (EMA II),-8.164,38.9407,129,Mora,Évora,01/02/2012
+Elvas / Est. Melhoramento Plantas,Estação Automática Climatológica (EMA II),-7.1409,38.8896,209,Elvas,Portalegre,01/06/1997
+Estremoz / Techocas,Estação Automática Climatológica (EMA II),-7.513,38.8621,364,Estremoz,Évora,14/04/1997
+Reguengos / S.Pedro Do Corval,Estação Automática Climatológica (EMA II),-7.4729,38.4848,265,Reguengos de Monsaraz,Évora,27/01/2010
+Montemor-o-Novo,Estação Automática Climatológica (EMA II),-8.1991,38.6451,225,Montemor-O-Novo,Évora,30/04/2024
+Viana Do Alentejo,Estação Automática Climatológica (EMA II),-8.0468,38.3386,201,Viana do Alentejo,Évora,12/01/2011
+Portel / Oriola,Estação Automática Climatológica (EMA II),-7.8608,38.3176,200,Portel,Évora,01/11/2000
+Amareleja,Estação Automática Climatológica (EMA II),-7.2261,38.2006,182,Moura,Beja,20/02/2015
+Mértola / Vale Formoso,Estação Automática Climatológica (EMA II),-7.5515,37.7576,199,Mértola,Beja,14/04/1997
+Castro Verde / Neves Corvo,Estação Automática Climatológica (EMA II),-7.972,37.5765,225,Castro Verde,Beja,14/04/1997
+Alcoutim / Martim Longo,Estação Automática Climatológica (EMA II),-7.7688,37.4375,285,Alcoutim,Faro,14/10/2000
+Vila Real De Santo António,Estação Automática Climatológica (EMA II),-7.4166,37.1871,4,Vila Real de Santo António,Faro,14/01/2011
+Castro Marim / Reserva Nacional Do Sapal,Estação Automática Climatológica (EMA II),-7.4259,37.2296,4,Castro Marim,Faro,22/12/1999
+Albufeira,Estação Automática Climatológica (EMA II),-8.262,37.0935,109,Albufeira,Faro,11/11/2019
+Portimão / Aeródromo,Estação Automática Climatológica (EMA II),-8.5826,37.1501,0,Portimão,Faro,15/10/1999
+Olhão / Eppo,Estação Automática Climatológica (EMA II),-7.8209,37.033,10,Olhão,Faro,21/02/2017
+Tavira / Eemt,Estação Automática Climatológica (EMA II),-7.6205,37.1217,2,Tavira,Faro,01/10/2019
+Flores/Fajã Grande,Estação Automática Climatológica (EMA II),-31.2647,39.4533,14,Lajes das Flores,Ilha das Flores,29/07/2020
+Nordeste / S.Miguel,Estação Automática Climatológica (EMA II),-25.1494,37.8289,180,Nordeste,Ilha de São Miguel,31/08/2002
+Porto Moniz,Estação Automática Climatológica (EMA II),-17.168,32.8674,35,Porto Moniz,Ilha da Madeira (Madeira),07/03/2014
+Ponta De S. Jorge,Estação Automática Climatológica (EMA II),-16.9062,32.8345,257,Santana,Ilha da Madeira (Madeira),01/09/2002
+Santana,Estação Automática Climatológica (EMA II),-16.8864,32.8082,380,Santana,Ilha da Madeira (Madeira),18/08/2010
+São Vicente,Estação Automática Climatológica (EMA II),-17.0447,32.8002,97,São Vicente,Ilha da Madeira (Madeira),19/08/2010
+Pico Alto,Estação Automática Climatológica (EMA II),-16.9039,32.6944,1118,Funchal,Ilha da Madeira (Madeira),01/01/2015
+Chão Do Areeiro,Estação Automática Climatológica (EMA II),-16.9162,32.7221,1590,Funchal,Ilha da Madeira (Madeira),01/09/2002
+Pico Do Areeiro,Estação Automática Climatológica (EMA II),-16.9283,32.7352,1799,Santana,Ilha da Madeira (Madeira),01/01/2015
+Santo Da Serra,Estação Automática Climatológica (EMA II),-16.8168,32.7259,660,Machico,Ilha da Madeira (Madeira),18/08/2010
+Funchal / Monte,Estação Automática Climatológica (EMA II),-16.9069,32.6758,593,Funchal,Ilha da Madeira (Madeira),13/06/2018
+Funchal / Cancela / Serviço Regional De Proteção Civil,Estação Automática Climatológica (EMA II),-16.8657,32.645,262,Funchal,Ilha da Madeira (Madeira),14/01/2021
+Caniçal / São Lourenço,Estação Automática Climatológica (EMA II),-16.7066,32.7484,133,Machico,Ilha da Madeira (Madeira),10/07/2009
+Quinta Grande,Estação Automática Climatológica (EMA II),-17.015,32.663,580,Câmara de Lobos,Ilha da Madeira (Madeira),23/08/2010
+Lugar De Baixo,Estação Automática Climatológica (EMA II),-17.0927,32.6812,40,Ponta do Sol,Ilha da Madeira (Madeira),01/09/2002
+Prazeres,Estação Automática Climatológica (EMA II),-17.2047,32.752,635,Calheta,Ilha da Madeira (Madeira),17/05/2019
+Ponta Do Pargo,Estação Automática Climatológica (EMA II),-17.2632,32.8138,298,Calheta,Ilha da Madeira (Madeira),01/09/2002
+Porto - Serra Do Pilar,Estação Automática Urbana (RUEMA),-8.6026,41.1384,94,Vila Nova de Gaia,Porto,22/01/2009
+Vila Real/Cidade,Estação Automática Urbana (RUEMA),-7.7405,41.309,481,Vila Real,Vila Real,17/06/2010
+Viana Do Castelo / Cidade,Estação Automática Urbana (RUEMA),-8.8296,41.695,18,Viana do Castelo,Viana do Castelo,28/02/2011
+Porto / Massarelos,Estação Automática Urbana (RUEMA),-8.626,41.1526,74,Porto,Porto,01/01/2002
+Funchal / Lido,Estação Automática Urbana (RUEMA),-16.9356,32.6365,25,Funchal,Ilha da Madeira (Madeira),01/01/2002
+Lousã/Trevim,Estação Automática Compacta,-8.179,40.0933,1167,Lousã,Coimbra,26/11/2019
+Lousã/Candal,Estação Automática Compacta,-8.2048,40.0809,621,Lousã,Coimbra,19/11/2019
+Seia/Aeródromo,Estação Automática Compacta,-7.6861,40.4552,437,Seia,Guarda,14/02/2020
+Seia/Senhora Do Espinheiro,Estação Automática Compacta,-7.6734,40.4128,995,Seia,Guarda,17/02/2020
+Campo De Tiro De Alcochete,Estação Automática Climatológica (EMA II),-8.7825,38.7627,41,Benavente,Santarém,25/09/2008
+Portimão-Praia Da Rocha,Estação Automática Climatológica (EMA II),-8.5295,37.1167,26,Portimão,Faro,18/07/2019
+Alfândega Da Fé/Sardão,Estação Automática Climatológica (EMA II),-6.8918,41.2693,393,Alfândega da Fé,Bragança,21/11/2013
+Torre De Moncorvo/Póvoa,Estação Automática Climatológica (EMA II),-7.0336,41.2335,496,Torre de Moncorvo,Bragança,01/04/2014
+Aguiar Da Beira (CIM),Estação Automática Climatológica (EMA II),-7.5337,40.812,741,Aguiar da Beira,Guarda,29/06/2018
+Carregal Do Sal (CIM),Estação Automática Climatológica (EMA II),-7.9263,40.4672,337,Carregal do Sal,Viseu,29/06/2018
+Castro Daire-Mézio (CIM),Estação Automática Climatológica (EMA II),-7.8832,40.9809,930,Castro Daire,Viseu,14/08/2018
+Mangualde-Chãs De Tavares (CIM),Estação Automática Climatológica (EMA II),-7.6084,40.611,638,Mangualde,Viseu,29/06/2018
+Oliveira De Frades (CIM),Estação Automática Climatológica (EMA II),-8.2013,40.7169,534,Oliveira de Frades,Viseu,30/06/2018
+Penalva Do Castelo (CIM),Estação Automática Climatológica (EMA II),-7.6966,40.6571,461,Penalva do Castelo,Viseu,08/08/2018
+Santa Comba Dão (CIM),Estação Automática Climatológica (EMA II),-8.14,40.3964,240,Santa Comba Dão,Viseu,08/08/2018
+Satão (CIM),Estação Automática Climatológica (EMA II),-7.7202,40.7607,706,Sátão,Viseu,29/06/2018
+Vila Nova de Paiva (CIM),Estação Automática Climatológica (EMA II),-7.7272,40.8559,826,Vila Nova de Paiva,Viseu,29/06/2018
+Arganil-Aeródromo (CIM),Estação Automática Climatológica (EMA II),-7.9744,40.2746,233,Arganil,Coimbra,01/01/2018
+Cantanhede-Fonte Dom Pedro (CIM),Estação Automática Climatológica (EMA II),-8.5776,40.3419,78,Cantanhede,Coimbra,01/01/2018
+Coimbra-Mata De São Pedro (CIM),Estação Automática Climatológica (EMA II),-8.3749,40.3308,264,Coimbra,Coimbra,01/01/2018
+Góis-Quinta Da Ribeira (CIM),Estação Automática Climatológica (EMA II),-8.1032,40.1716,191,Góis,Coimbra,01/01/2018
+Mealhada-Quinta Do Vale (CIM),Estação Automática Climatológica (EMA II),-8.4388,40.3733,63,Mealhada,Aveiro,01/01/2018
+Mortágua-Aeródromo (CIM),Estação Automática Climatológica (EMA II),-8.2321,40.4262,152,Mortágua,Viseu,01/01/2018
+Penacova-Hombres (CIM),Estação Automática Climatológica (EMA II),-8.1987,40.2809,141,Penacova,Coimbra,01/01/2018
+Penela-Serra Do Espinhal (CIM),Estação Automática Climatológica (EMA II),-8.3346,40.0288,519,Penela,Coimbra,01/01/2018
+Vila Nova De Poiares-Zona Industrial (CIM),Estação Automática Climatológica (EMA II),-8.242,40.2114,132,Vila Nova de Poiares,Coimbra,09/01/2018
+Oliveira Do Hospital (CIM),Estação Automática Climatológica (EMA II),-7.868,40.4133,304,Oliveira do Hospital,Coimbra,19/10/2018
+Soure (CIM),Estação Automática Climatológica (EMA II),-8.5049,40.0293,524,Soure,Coimbra,19/10/2018
+Monção - Guimil (CIM),Estação Automática Climatológica (EMA II),-8.4219,42.0429,386,Monção,Viana do Castelo,12/05/2021
+Paredes De Coura - Vascões (CIM),Estação Automática Climatológica (EMA II),-8.4921,41.9134,601,Paredes de Coura,Viana do Castelo,12/05/2021
+Arcos De Valdevez - Heliporto (CIM),Estação Automática Climatológica (EMA II),-8.4437,41.831,272,Arcos de Valdevez,Viana do Castelo,05/04/2021
+Viana Do Castelo - Fonte Louçã (CIM),Estação Automática Climatológica (EMA II),-8.8153,41.7457,479,Viana do Castelo,Viana do Castelo,05/04/2021
+Ponte De Lima - Anais (CIM),Estação Automática Climatológica (EMA II),-8.5224,41.6981,284,Ponte de Lima,Viana do Castelo,12/05/2021
+Terras De Bouro-Barral (CIM),Estação Automática Climatológica (EMA II),-8.3181,41.7023,324,Terras de Bouro,Braga,04/12/2019
+Amares-Caldelas (CIM),Estação Automática Climatológica (EMA II),-8.3798,41.668,107,Amares,Braga,26/10/2019
+Vila Verde (CIM),Estação Automática Climatológica (EMA II),-8.434,41.6469,69,Vila Verde,Braga,04/10/2019
+Braga (CIM),Estação Automática Climatológica (EMA II),-8.4251,41.5358,231,Braga,Braga,27/09/2019
+Barcelos (CIM),Estação Automática Climatológica (EMA II),-8.6271,41.5294,22,Barcelos,Braga,04/10/2019
+Esposende (CIM),Estação Automática Climatológica (EMA II),-8.7798,41.5265,5,Esposende,Braga,26/10/2019
+Vila Nova De Famalicão (CIM),Estação Automática Climatológica (EMA II),-8.5219,41.3882,77,Vila Nova de Famalicão,Braga,03/03/2020
+Castelo Branco / Aeródromo (CM),Estação Automática Principal (EMA I),-7.443,39.8483,381,Castelo Branco,Castelo Branco,13/12/2023
+Ponte De Sôr/Aeródromo (CM),Estação Automática Climatológica (EMA II),-8.0542,39.2154,118,Ponte de Sor,Portalegre,14/02/2018
+Lisboa Carnide (CM),Estação Automática Climatológica (EMA II),-9.1855,38.7751,118,Lisboa,Lisboa,19/04/2024
+Lisboa/Beato (CM),Estação Automática Urbana (RUEMA),-9.1055,38.7319,4,Lisboa,Lisboa,26/02/2023
+Oeiras-Vila Fria (CM),Estação Automática Climatológica (EMA II),-9.2926,38.724,134,Oeiras,Lisboa,13/07/2021
+Lisboa/Amoreiras (LFCL),Estação Automática Urbana (RUEMA),-9.1649,38.7239,98,Lisboa,Lisboa,11/04/2012
+Santa Maria/Santa Maria (DRAAC),Estação Automática Climatológica (EMA II),-25.0763,36.962,420,Vila do Porto,Ilha de Santa Maria,30/10/2019
+Santa Maria/Praia Formosa (DRAAC),Estação Automática Climatológica (EMA II),-25.0917,36.9542,180,Vila do Porto,Ilha de Santa Maria,30/09/2019
+Santa Maria/Maia (DRAAC),Estação Automática Climatológica (EMA II),-25.0176,36.9412,200,Vila do Porto,Ilha de Santa Maria,30/09/2019
+São Miguel/Santana (DRAAC),Estação Automática Climatológica (EMA II),-25.5618,37.8049,70,Ribeira Grande,Ilha de São Miguel,30/09/2019
+São Miguel/Pilar Da Bretanha (DRAAC),Estação Automática Climatológica (EMA II),-25.7802,37.8977,310,Ponta Delgada,Ilha de São Miguel,13/02/2022
+São Miguel/Chã Da Macela (DRAAC),Estação Automática Climatológica (EMA II),-25.5317,37.7644,310,Lagoa,Ilha de São Miguel,30/09/2019
+São Miguel/Sete Cidades (DRAAC),Estação Automática Climatológica (EMA II),-25.772,37.8679,260,Ponta Delgada,Ilha de São Miguel,30/09/2019
+Nordeste/Cancela do Cinzeiro (DRAAC),Estação Automática Climatológica (EMA II),-25.1601,37.8006,563,Nordeste,Ilha de São Miguel,14/06/2024
+São Miguel/Lombo (DRAAC),Estação Automática Climatológica (EMA II),-25.4805,37.7604,580,Vila Franca do Campo,Ilha de São Miguel,30/09/2019
+São Miguel/Lagoa Das Furnas (DRAAC),Estação Automática Climatológica (EMA II),-25.3291,37.7619,280,Povoação,Ilha de São Miguel,21/10/2019
+Terceira/Ribeira Das Nove (DRAAC),Estação Automática Climatológica (EMA II),-27.3245,38.754,714,Angra do Heroísmo,Ilha Terceira,30/09/2019
+Terceira/Serra Do Cume (DRAAC),Estação Automática Climatológica (EMA II),-27.1031,38.7002,468,Praia da Vitória,Ilha Terceira,30/09/2019
+Graciosa/Serra Das Fontes (DRAAC),Estação Automática Climatológica (EMA II),-28.0038,39.0672,257,Santa Cruz da Graciosa,Ilha da Graciosa,30/09/2019
+São Jorge/Pico Do Areeiro (DRAAC),Estação Automática Climatológica (EMA II),-28.0591,38.6435,870,Velas,Ilha de São Jorge,30/09/2019
+Pico/Cabeço Do Teicho (DRAAC),Estação Automática Climatológica (EMA II),-28.3534,38.489,847,São Roque do Pico,Ilha do Pico,30/09/2019
+Pico/Canada Das Bandeiras (DRAAC),Estação Automática Climatológica (EMA II),-28.4525,38.4958,629,Madalena,Ilha do Pico,30/09/2019
+Pico/Cabecinho (DRAAC),Estação Automática Climatológica (EMA II),-28.1141,38.4338,558,Lajes do Pico,Ilha do Pico,30/09/2019
+Faial/Alto Do Cabouco (DRAAC),Estação Automática Climatológica (EMA II),-28.6992,38.587,830,Horta,Ilha do Faial,30/09/2019
+Faial/Cabeço Verde (DRAAC),Estação Automática Climatológica (EMA II),-28.7576,38.5843,510,Horta,Ilha do Faial,30/09/2019
+Flores/Lagoa Funda (DRAAC),Estação Automática Climatológica (EMA II),-31.2308,39.4447,555,Lajes das Flores,Ilha das Flores,30/09/2019
+Flores/Ponta da Fajã (DRAAC),Estação Automática Climatológica (EMA II),-31.2416,39.4746,734,Santa Cruz das Flores,Ilha das Flores,01/12/2023
+Corvo/Fonte Do Trevo (DRAAC),Estação Automática Climatológica (EMA II),-31.1087,39.6895,424,Corvo,Ilha do Corvo,30/09/2019
