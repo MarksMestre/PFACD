@@ -167,14 +167,14 @@ def create_maps(df, output_file, distance):
        
 
         if distance:
-            # Construção do Quadro de Detalhes Unificado (HTML)
+            # 1. Definimos apenas a String do HTML primeiro
             conteudo_html = f"""
             <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; width: 280px; line-height: 1.5;">
                 <h4 style="margin-top: 0; color: #2c3e50; border-bottom: 2px solid #ecf0f1; padding-bottom: 5px;">
                     Detalhes da Estação
                 </h4>
                 <table style="width: 100%; font-size: 12px; border-collapse: collapse;">
-                    <tr><td><b>ID:</b></td><td>{row['idEstacao']})</td></tr>
+                    <tr><td><b>ID:</b></td><td>{row['idEstacao']}</td></tr>
                     <tr><td><b>Local:</b></td><td>{row['localEstacao']}</td></tr>
                     <tr style="background-color: #f9f9f9;"><td><b>Município:</b></td><td>{row.get('Municipio', 'N/A')}</td></tr>
                     <tr style="background-color: #f9f9f9;"><td><b>Distrito:</b></td><td>{row.get('Distrito', 'N/A')}</td></tr>
@@ -189,27 +189,28 @@ def create_maps(df, output_file, distance):
             </div>
             """
             
-            popup_config = folium.Popup(conteudo_html, max_width=300)
-            # Ponto API (Vermelho)
+            # 2. Ponto API (Vermelho) - Criamos um Popup exclusivo
             folium.CircleMarker(
                 location=p_api, radius=7, color='red', fill=True, fill_opacity=0.7,
-                popup=popup_config, tooltip="Clique para ver detalhes"
+                popup=folium.Popup(conteudo_html, max_width=300), 
+                tooltip="Clique para ver detalhes"
             ).add_to(mapa)
 
-            # Ponto Oficial (Azul)
+            # 3. Ponto Oficial (Azul) - Criamos OUTRO Popup exclusivo com o mesmo HTML
             folium.CircleMarker(
                 location=p_oficial, radius=7, color='blue', fill=True, fill_opacity=0.7,
-                popup=popup_config, tooltip="Clique para ver detalhes"
+                popup=folium.Popup(conteudo_html, max_width=300), 
+                tooltip="Clique para ver detalhes"
             ).add_to(mapa)
 
-            # Linha de ligação
+            # 4. Linha de ligação
             folium.PolyLine(
                 locations=[p_api, p_oficial], color='black', weight=1.5, dash_array='5', opacity=0.5
             ).add_to(mapa)
 
         else:
             
-                # Construção do Quadro de Detalhes Unificado (HTML)
+            # Construção do Quadro de Detalhes Unificado (HTML)
             conteudo_html = f"""
             <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; width: 280px; line-height: 1.5;">
                 <h4 style="margin-top: 0; color: #2c3e50; border-bottom: 2px solid #ecf0f1; padding-bottom: 5px;">
@@ -235,6 +236,7 @@ def create_maps(df, output_file, distance):
 
     mapa.save(output_file)
     print(f"✅ Mapa gerado com quadros detalhados em: {output_file}")
+
 
 def main():
     stations_df = pd.read_csv(IPMA_STATIONS_CSV, sep=",")
