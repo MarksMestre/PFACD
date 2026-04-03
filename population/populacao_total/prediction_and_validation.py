@@ -187,7 +187,6 @@ def get_better_results(data_ml, df_input, pred_oficial):
     ]
 
     best_score = float('inf')
-    best_model_trained = None
     best_features = None
 
     for config in configs:
