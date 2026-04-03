@@ -47,7 +47,9 @@ IPMA_STATIONS_DONT_MATCH = os.path.join(IPMA_MERGED_DATA, "IPMA_stations_dont_ma
 IPMA_STATIONS_CONFLICT = os.path.join(IPMA_MERGED_DATA, "IPMA_stations_conflict.csv")
 
 # Conflict maps data
-IPMA_CONFLICT_MAPS = os.path.join(IPMA_MERGED_DATA, "conflict_maps.html")
+IPMA_CONFLICT_MAPS = os.path.join(IPMA_MERGED_DATA, "conflict_maps_dist.html")
+IPMA_MERGED_MAPS = os.path.join(IPMA_MERGED_DATA, "merged_df_maps.html")
+IPMA_MERGED_MAPS_DIST = os.path.join(IPMA_MERGED_DATA, "merged_df_maps_dist.html")
 
 # final data
 IPMA_FINAL_DATA = os.path.join(IPMA, "data_final")

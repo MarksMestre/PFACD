@@ -9,7 +9,7 @@ import sys
 base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 sys.path.insert(0, base_path)
 
-from paths import IPMA_STATIONS_CSV, IPMA_STATIONS_OFICIAL_CORRECTED, IPMA_STATIONS_OFFICIAL, IPMA_STATIONS_MERGED, IPMA_STATIONS_CONFLICT, IPMA_STATIONS_DONT_MATCH, IPMA_CONFLICT_MAPS
+from paths import IPMA_STATIONS_CSV, IPMA_STATIONS_OFICIAL_CORRECTED, IPMA_STATIONS_OFFICIAL, IPMA_STATIONS_MERGED, IPMA_STATIONS_CONFLICT, IPMA_STATIONS_DONT_MATCH, IPMA_CONFLICT_MAPS, IPMA_MERGED_MAPS, IPMA_MERGED_MAPS_DIST
 
 
 def correct_location_cols(oficial_df):
@@ -133,6 +133,8 @@ def merge_dfs(stations_df_input, corrected_df_input):
 
     merged_df = merged_df[cols]
 
+    final_df = merged_df[merged_df['Altitude'].notna()]
+
     # Filtra para ver onde o merge pode ter falhado (nomes muito diferentes)
     dont_have_correspondence = merged_df[merged_df['Altitude'].isna()]
     conflituosos = merged_df[
@@ -144,67 +146,89 @@ def merge_dfs(stations_df_input, corrected_df_input):
     print("Possíveis erros de correspondência (Nomes muito diferentes ou distancia maior que 2000):")
     print(conflituosos[['localEstacao', 'Nome_oficial', 'score_nome', 'distancia_erro_m']])
 
-    return merged_df, conflituosos, dont_have_correspondence
+    return final_df, conflituosos, dont_have_correspondence
 
 
-def create_maps_conflict(conflict_df, output_file):
-    if conflict_df.empty:
+def create_maps(df, output_file, distance):
+    if df.empty:
         print("Não existem conflitos para mapear.")
         return
 
+    
     mapa = folium.Map(
-        location=[conflict_df['latitude'].mean(), conflict_df['longitude'].mean()], 
+        location=[df['latitude'].mean(), df['longitude'].mean()], 
         zoom_start=7,
         tiles='CartoDB Positron'
     )
 
-    for _, row in conflict_df.iterrows():
-        p_api = [row['latitude'], row['longitude']]
-        p_oficial = [row['latitude_oficial'], row['longitude_oficial']]
-        distancia = row['distancia_erro_m']
+    if distance:
 
-        # 1. Marcadores de Pontos (API e Oficial)
-        folium.CircleMarker(location=p_api, radius=6, color='red', fill=True, fill_opacity=0.7).add_to(mapa)
-        folium.CircleMarker(location=p_oficial, radius=6, color='blue', fill=True, fill_opacity=0.7).add_to(mapa)
+        for _, row in df.iterrows():
+            p_api = [row['latitude'], row['longitude']]
+            p_oficial = [row['latitude_oficial'], row['longitude_oficial']]
+            distancia = row['distancia_erro_m']
 
-        # 2. Etiquetas de Nome e ID
-        folium.Marker(
-            location=p_api,
-            icon=DivIcon(
-                icon_size=(150,36), icon_anchor=(0,0),
-                html=f'<div style="font-size: 9pt; color: red; font-weight: bold;">ID: {row["idEstacao"]}<br>{row["localEstacao"]}</div>'
-            )
-        ).add_to(mapa)
+            # 1. Marcadores de Pontos (API e Oficial)
+            folium.CircleMarker(location=p_api, radius=6, color='red', fill=True, fill_opacity=0.7).add_to(mapa)
+            folium.CircleMarker(location=p_oficial, radius=6, color='blue', fill=True, fill_opacity=0.7).add_to(mapa)
 
-        folium.Marker(
-            location=p_oficial,
-            icon=DivIcon(
-                icon_size=(150,36), icon_anchor=(0,20),
-                html=f'<div style="font-size: 9pt; color: blue; font-weight: bold;">{row["Nome_oficial"]}</div>'
-            )
-        ).add_to(mapa)
+            # 2. Etiquetas de Nome e ID
+            folium.Marker(
+                location=p_api,
+                icon=DivIcon(
+                    icon_size=(150,36), icon_anchor=(0,0),
+                    html=f'<div style="font-size: 9pt; color: red; font-weight: bold;">ID: {row["idEstacao"]}<br>{row["localEstacao"]}</div>'
+                )
+            ).add_to(mapa)
 
-        # 3. Linha Tracejada
-        folium.PolyLine(
-            locations=[p_api, p_oficial], color='black', weight=2, dash_array='5'
-        ).add_to(mapa)
+            folium.Marker(
+                location=p_oficial,
+                icon=DivIcon(
+                    icon_size=(150,36), icon_anchor=(0,20),
+                    html=f'<div style="font-size: 9pt; color: blue; font-weight: bold;">{row["Nome_oficial"]}</div>'
+                )
+            ).add_to(mapa)
 
-        # 4. CÁLCULO E ETIQUETA DA DISTÂNCIA (No ponto médio da linha)
-        ponto_medio = [
-            (p_api[0] + p_oficial[0]) / 2,
-            (p_api[1] + p_oficial[1]) / 2
-        ]
+            # 3. Linha Tracejada
+            folium.PolyLine(
+                locations=[p_api, p_oficial], color='black', weight=2, dash_array='5'
+            ).add_to(mapa)
 
-        folium.Marker(
-            location=ponto_medio,
-            icon=DivIcon(
-                icon_size=(80,20),
-                icon_anchor=(40,10), # Centraliza o texto sobre o ponto
-                html=f'<div style="font-size: 8pt; color: black; background-color: white; border: 1px solid black; '
-                     f'border-radius: 3px; text-align: center; font-weight: bold; padding: 1px;">'
-                     f'{distancia:.0f} m</div>',
-            )
-        ).add_to(mapa)
+            # 4. CÁLCULO E ETIQUETA DA DISTÂNCIA (No ponto médio da linha)
+            ponto_medio = [
+                (p_api[0] + p_oficial[0]) / 2,
+                (p_api[1] + p_oficial[1]) / 2
+            ]
+
+            folium.Marker(
+                location=ponto_medio,
+                icon=DivIcon(
+                    icon_size=(80,20),
+                    icon_anchor=(40,10), # Centraliza o texto sobre o ponto
+                    html=f'<div style="font-size: 8pt; color: black; background-color: white; border: 1px solid black; '
+                        f'border-radius: 3px; text-align: center; font-weight: bold; padding: 1px;">'
+                        f'{distancia:.0f} m</div>',
+                )
+            ).add_to(mapa)
+    
+    else:
+
+        for _, row in df.iterrows():
+            p_oficial = [row['latitude_oficial'], row['longitude_oficial']]
+
+
+            folium.CircleMarker(location=p_oficial, radius=6, color='blue', fill=True, fill_opacity=0.7).add_to(mapa)
+
+
+            folium.Marker(
+                location=p_oficial,
+                icon=DivIcon(
+                    icon_size=(150,36), icon_anchor=(0,20),
+                    html=f'<div style="font-size: 9pt; color: blue; font-weight: bold;">{row["Nome_oficial"]}</div>'
+                )
+            ).add_to(mapa)
+
+
 
     mapa.save(output_file)
     print(f"✅ Mapa salvo com distâncias em: {output_file}")
@@ -241,7 +265,9 @@ def main():
     conflict.to_csv(IPMA_STATIONS_CONFLICT, sep=",", index=False)
     dont_have_correspondence.to_csv(IPMA_STATIONS_DONT_MATCH, sep=",", index=False)
 
-    create_maps_conflict(conflict_df=conflict, output_file=IPMA_CONFLICT_MAPS)
+    create_maps(df=merged_df, output_file=IPMA_MERGED_MAPS_DIST, distance=True)
+    create_maps(df=merged_df, output_file=IPMA_MERGED_MAPS, distance=False)
+    create_maps(df=conflict, output_file=IPMA_CONFLICT_MAPS, distance=True)
 
 if __name__ == "__main__":
     main()
