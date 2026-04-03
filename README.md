@@ -76,7 +76,6 @@ Este repositório contém o ecossistema de dados desenvolvido para o projeto "Ca
  ┣ 📜ponto_de_situacao.txt
  ┣ 📜requirements.txt
  ┗ 📜tree.txt
-}
 ``` 
 
 ## Funcionalidades do Projeto
