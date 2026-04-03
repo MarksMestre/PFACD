@@ -72,7 +72,7 @@ def aggreggate_selection(df, time_agg):
         raise ValueError("Opção de agregação inválida")
 
 
-def main(using_copy: bool = True):
+def main(using_copy: bool = False):
 
     if using_copy:
 
