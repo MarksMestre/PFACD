@@ -14,9 +14,13 @@ METEO_FOLDER = os.path.join(BASE_FOLDER, "meteorology")
 
 # CAMS
 CAMS_FOLDER = os.path.join(METEO_FOLDER, "CAMS")
-CAMS_1DAY = os.path.join(CAMS_FOLDER, "1day")
-CAMS_1MONTH = os.path.join(CAMS_FOLDER, "1month")
 CAMS_PROGRESS_FILE = os.path.join(CAMS_FOLDER, "progress.json")
+
+# Data input
+CAMS_INPUT_DATA = os.path.join(CAMS_FOLDER, "data_input")
+CAMS_1DAY = os.path.join(CAMS_INPUT_DATA, "1day")
+CAMS_1MONTH = os.path.join(CAMS_INPUT_DATA, "1month")
+
 
 # Folder para data agregada
 CAMS_MERGED_FOLDER = os.path.join(CAMS_FOLDER, "data_merged")
@@ -82,13 +86,18 @@ DENSIDADE_CSV = os.path.join(DENSIDADE_FOLDER, "population_density.csv")
 
 # População Total
 POP_TOTAL_FOLDER = os.path.join(DEMOGRAPHY_FOLDER, "population_total")
-POP_TOTAL_DATA_FOLDER = os.path.join(POP_TOTAL_FOLDER, "data")
-POP_TOTAL_CSV = os.path.join(POP_TOTAL_DATA_FOLDER, "populacao_total.csv")
-POP_WEIGHTS_CSV = os.path.join(POP_TOTAL_DATA_FOLDER, "populacao_total_weights.csv")
-POP_ML_DATA_CSV = os.path.join(POP_TOTAL_DATA_FOLDER, "ml_data.csv")
-POP_PRED_OFFICIAL_2025 = os.path.join(POP_TOTAL_DATA_FOLDER, "previsao_oficial_2025.csv")
-POP_PREDICTION_OUTPUT = os.path.join(POP_TOTAL_DATA_FOLDER, "prediction.csv")
-POP_FINAL_DF = os.path.join(POP_TOTAL_DATA_FOLDER, "populacao_com_previsao_2025.csv")
+POP_TOTAL_INPUT_FOLDER = os.path.join(POP_TOTAL_FOLDER, "data_input")
+POP_TOTAL_CSV = os.path.join(POP_TOTAL_INPUT_FOLDER, "populacao_total.csv")
+POP_PRED_OFFICIAL_2025 = os.path.join(POP_TOTAL_INPUT_FOLDER, "previsao_oficial_2025.csv")
+
+POP_TOTAL_INTERMEDIATE_FOLDER = os.path.join(POP_TOTAL_FOLDER, "data_intermediate")
+POP_WEIGHTS_CSV = os.path.join(POP_TOTAL_INTERMEDIATE_FOLDER, "populacao_total_weights.csv")
+POP_ML_DATA_CSV = os.path.join(POP_TOTAL_INTERMEDIATE_FOLDER, "ml_data.csv")
+
+
+POP_TOTAL_FINAL_FOLDER = os.path.join(POP_TOTAL_FOLDER, "data_final")
+POP_PREDICTION_OUTPUT = os.path.join(POP_TOTAL_FINAL_FOLDER, "prediction.csv")
+
 # ======================================================================================================================================
 
 

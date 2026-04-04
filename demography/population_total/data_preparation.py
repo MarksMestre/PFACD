@@ -7,9 +7,9 @@ import sys
 base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 sys.path.insert(0, base_path)
 
-from __configure__.paths import POP_PRED_OFFICIAL_2025, POP_TOTAL_CSV, POP_TOTAL_DATA_FOLDER, POP_WEIGHTS_CSV, POP_ML_DATA_CSV
+from __configure__.paths import POP_PRED_OFFICIAL_2025, POP_TOTAL_CSV, POP_TOTAL_INPUT_FOLDER, POP_TOTAL_INTERMEDIATE_FOLDER, POP_WEIGHTS_CSV, POP_ML_DATA_CSV
 
-os.makedirs(POP_TOTAL_DATA_FOLDER, exist_ok=True)
+os.makedirs(POP_TOTAL_INPUT_FOLDER, exist_ok=True)
 
 # Criar dataset com vars de IDs unicos para NUTS de 2024
 def create_territory_code_pure_nuts2024(df):
@@ -578,10 +578,10 @@ def main():
     df_no_conversion = create_territory_code(df, convert_nuts2021=False)
     df = create_territory_code(df, convert_nuts2021=True)
     df.to_csv(
-        os.path.join(POP_TOTAL_DATA_FOLDER, "populacao_total_nuts2021.csv"), 
+        os.path.join(POP_TOTAL_INTERMEDIATE_FOLDER, "populacao_total_nuts2021.csv"), 
         sep=",", index=False)
     df_no_conversion.to_csv(
-        os.path.join(POP_TOTAL_DATA_FOLDER, "populacao_total_nuts2024.csv"), 
+        os.path.join(POP_TOTAL_INTERMEDIATE_FOLDER, "populacao_total_nuts2024.csv"), 
         sep=",", index=False)
     compare_mapping_nuts3(df, df_no_conversion)
 

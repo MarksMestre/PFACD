@@ -1,4 +1,10 @@
 import time
+import os
+import sys
+
+# Sobe até a root do projeto
+base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+sys.path.insert(0, base_path)
 
 from meteorology.IPMA.read_loc_stations_IPMA import main as create_IPMA_csv
 from meteorology.IPMA.merge_oficial_local_info import main as compare_API_site_data

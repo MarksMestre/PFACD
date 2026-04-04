@@ -10,7 +10,7 @@ import sys
 base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 sys.path.insert(0, base_path)
 
-from __configure__.paths import POP_ML_DATA_CSV, POP_WEIGHTS_CSV, POP_PRED_OFFICIAL_2025
+from __configure__.paths import POP_ML_DATA_CSV, POP_WEIGHTS_CSV, POP_PRED_OFFICIAL_2025, POP_PREDICTION_OUTPUT
 
 
 
@@ -279,6 +279,47 @@ def compare_results(pred_df, oficial_pred_df):
     print("="*85)
 
     return comparativo
+
+
+def merge_results(preds_df, data_df):
+    # 1. Carregar os dados
+    cols_data = [
+        "Level","NUTS3","NUTS3_Name","territory_code","Name",
+    ] + [str(ano) for ano in range(2013,2025)]
+    data_df = data_df[cols_data]
+
+    # 2. Preparar o DataFrame de previsões
+    # Assumindo que o teu prediction.csv tem as colunas 'territory_code' e a predição (ex: 'prediction_2025')
+    # Vamos renomear a coluna de predição para '2025' para seguir o padrão do dataset original
+    preds_to_join = preds_df[['territory_code', 'target_pop']].rename(
+        columns={'target_pop': '2025'}
+    )
+
+    # 3. Fazer o Merge (Juntar os dados)
+    # Usamos 'left' para manter todos os dados originais (incluindo as linhas NUTS3)
+    # Mesmo que a predição só exista para MUN, as NUTS3 ficarão com NaN (que podemos somar depois)
+    final_df = pd.merge(data_df, preds_to_join, on='territory_code', how='left')
+
+    # 4. (Opcional) Reordenar as colunas para o '2025' ficar logo após o '2024'
+    # Isto evita que a coluna nova fique no fim de todas as colunas 'weight_'
+    cols = list(final_df.columns)
+    idx_2024 = cols.index('2024')
+    
+    # Movemos a coluna '2025' do final para a posição idx_2024 + 1
+    cols.insert(idx_2024 + 1, cols.pop(cols.index('2025')))
+    final_df = final_df[cols]
+
+    # 5. Recalcular os totais das NUTS3 para 2025
+    # Como as NUTS3 no prediction.csv provavelmente estão vazias, vamos somar os municípios
+    nuts_totals_2025 = final_df[final_df["Level"] == "MUN"].groupby("NUTS3")["2025"].sum()
+    
+    # Preencher os valores das linhas NUTS3 onde a coluna 2025 está vazia
+    final_df.loc[final_df["Level"] == "NUTS3", "2025"] = final_df["NUTS3"].map(nuts_totals_2025)
+    
+    print(f"Sucesso!")
+    print(final_df[['Name', '2024', '2025']].head())
+
+    return final_df
     
 
 def main():
@@ -286,6 +327,7 @@ def main():
     data_ml = pd.read_csv(POP_ML_DATA_CSV, sep=",")
     df_data = pd.read_csv(POP_WEIGHTS_CSV, sep=",")
     pred_oficial = pd.read_csv(POP_PRED_OFFICIAL_2025, sep=",")
+    
 
     # 1. Preparar os dados de entrada para 2025
     df_input_2025 = prepare_2025_dataset(df_ml=data_ml, df_data=df_data)
@@ -294,11 +336,16 @@ def main():
     better_results = get_better_results(
         data_ml=data_ml, 
         df_input=df_try, 
-        pred_oficial=pred_oficial)
+        pred_oficial=pred_oficial
+    )
     
-    
-    # Opcional: Salvar para CSV
-    # better_results.to_csv(output_file, index=False)
+
+    final_result = merge_results(
+        preds_df=better_results,
+        data_df=df_data
+    )
+
+    final_result.to_csv(POP_PREDICTION_OUTPUT, sep=",", index=True)
 
 if __name__ == "__main__":
     try:

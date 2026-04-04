@@ -14,7 +14,7 @@ import sys
 base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 sys.path.insert(0, base_path)
 
-from __configure__.paths import CAMS_FOLDER, IPMA_STATIONS_CSV, CAMS_PROGRESS_FILE
+from __configure__.paths import CAMS_INPUT_DATA, IPMA_STATIONS_CSV, CAMS_PROGRESS_FILE
 
 
 estacoes_concluidas = 0
@@ -23,8 +23,8 @@ print_lock = Lock() # Lock para proteger a variável de progresso
 progresso_lock = Lock() # Lock para proteger a variável de progresso
 
 
-if not os.path.exists(CAMS_FOLDER):
-    os.makedirs(CAMS_FOLDER, exist_ok=True) # Cria a pasta se não existir, sem lançar erro se já existir
+if not os.path.exists(CAMS_INPUT_DATA):
+    os.makedirs(CAMS_INPUT_DATA, exist_ok=True) # Cria a pasta se não existir, sem lançar erro se já existir
 
 
 
@@ -77,7 +77,7 @@ def api_get(station_id=None, location_name=None, longitude=None, latitude=None, 
 
 
     # Definir o nome do ficheiro dinamicamente
-    time_folder = os.path.join(CAMS_FOLDER, str(time_step)) # Subpasta para o time_step específico
+    time_folder = os.path.join(CAMS_INPUT_DATA, str(time_step)) # Subpasta para o time_step específico
     if not os.path.exists(time_folder):
         os.makedirs(time_folder, exist_ok=True) # Cria a pasta se não existir, sem lançar erro se já existir
 
@@ -106,7 +106,7 @@ def processar_ficheiro_cams(station_id=None, location_name=None, time_step="1mon
         raise ValueError("O station_id é obrigatório para processar o ficheiro CAMS.")
     
     # Definir o nome do ficheiro dinamicamente
-    time_folder = os.path.join(CAMS_FOLDER, str(time_step)) # Subpasta para o time_step específico
+    time_folder = os.path.join(CAMS_INPUT_DATA, str(time_step)) # Subpasta para o time_step específico
     raw_folder = os.path.join(time_folder, "raw_data") # Subpasta para os ficheiros CSV brutos
 
     nome_ficheiro = f"{raw_folder}/{str(station_id)}.csv"

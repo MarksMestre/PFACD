@@ -68,10 +68,8 @@ bots.json
 
 # CAMS
 # Ignora as pastas de cópias e dados finais, mas mantém a estrutura se quiseres
-meteorology/CAMS/1day_copy/
-meteorology/CAMS/1month_copy/
-meteorology/CAMS/data_final/
-meteorology/CAMS/data_merged/
+1day_copy/
+1month_copy/
 metadados_cams.txt
 progress.json
 data_api_opt_bot.py
@@ -82,7 +80,8 @@ meteorology/IPMA/data_input/*
 !meteorology/IPMA/data_input/IPMA_stations.json
 !meteorology/IPMA/data_input/IPMA_stations.csv
 !meteorology/IPMA/data_input/IPMA_stations_data_oficial_corrected.csv
-IPMA/data_final/
+meteorology/IPMA/data_final/
+
 
 # Population
 # Ignoramos os dados de treino/ML, mantemos apenas os oficiais
@@ -92,5 +91,7 @@ demography/population_total/data/*
 
 # Outros
 data_merged/
+data_final/
+data_intermediate
 *.html
 __pycache__/

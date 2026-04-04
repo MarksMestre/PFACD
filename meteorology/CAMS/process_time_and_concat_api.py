@@ -8,7 +8,7 @@ import sys
 base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 sys.path.insert(0, base_path)
 
-from __configure__.paths import CAMS_FOLDER, CAMS_MERGED_FOLDER
+from __configure__.paths import CAMS_INPUT_DATA, CAMS_MERGED_FOLDER
 
 
 def acerto_months(df):
@@ -117,7 +117,7 @@ def main_loop(using_copy):
 
     for time_step in time_steps:
         time_dfs[time_step] = []
-        time_folder = os.path.join(CAMS_FOLDER, time_step)
+        time_folder = os.path.join(CAMS_INPUT_DATA, time_step)
         processed_folder = os.path.join(time_folder, "processed_data")
         for file in os.listdir(processed_folder):
             file_path = os.path.join(processed_folder, file)
