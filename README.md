@@ -25,7 +25,6 @@ Este repositório contém o ecossistema de dados desenvolvido para o projeto "Ca
  ┃ ┃ ┃ ┗ 📜previsao_oficial_2025.csv
  ┃ ┃ ┣ 📜data_preparation.py
  ┃ ┃ ┣ 📜main.py
- ┃ ┃ ┣ 📜pipeline.py
  ┃ ┃ ┣ 📜prediction_and_validation.py
  ┃ ┃ ┣ 📜results_visualization.py
  ┃ ┃ ┗ 📜__init__.py
@@ -35,22 +34,18 @@ Este repositório contém o ecossistema de dados desenvolvido para o projeto "Ca
  ┃ ┣ 📂CAMS
  ┃ ┃ ┣ 📂1day
  ┃ ┃ ┃ ┣ 📂processed_data
- ┃ ┃ ┃ ┗ 📂raw_data
+ ┃ ┃ ┃ ┣ 📂raw_data
  ┃ ┃ ┣ 📂1month
  ┃ ┃ ┃ ┣ 📂processed_data
- ┃ ┃ ┃ ┗ 📂raw_data
+ ┃ ┃ ┃ ┣ 📂raw_data
  ┃ ┃ ┣ 📂data_final
  ┃ ┃ ┃ ┣ 📜merged_1day_month.csv
  ┃ ┃ ┃ ┣ 📜merged_1day_semester.csv
  ┃ ┃ ┃ ┗ 📜merged_1day_trimester.csv
  ┃ ┃ ┣ 📂data_merged
  ┃ ┃ ┃ ┣ 📜merged_1day.csv
+ ┃ ┃ ┃ ┣ 📜merged_1day_copy.csv
  ┃ ┃ ┃ ┗ 📜merged_1month.csv
- ┃ ┃ ┣ 📂__pycache__
- ┃ ┃ ┃ ┣ 📜aggregation_day.cpython-314.pyc
- ┃ ┃ ┃ ┣ 📜main.cpython-314.pyc
- ┃ ┃ ┃ ┣ 📜process_time_and_concat_api.cpython-314.pyc
- ┃ ┃ ┃ ┗ 📜__init__.cpython-314.pyc
  ┃ ┃ ┣ 📜aggregation_day.py
  ┃ ┃ ┣ 📜data_api_manual.py
  ┃ ┃ ┣ 📜data_api_opt.py
@@ -76,34 +71,24 @@ Este repositório contém o ecossistema de dados desenvolvido para o projeto "Ca
  ┃ ┃ ┃ ┣ 📜IPMA_stations_merged.csv
  ┃ ┃ ┃ ┣ 📜merged_df_maps.html
  ┃ ┃ ┃ ┗ 📜merged_df_maps_dist.html
- ┃ ┃ ┣ 📂__pycache__
- ┃ ┃ ┃ ┣ 📜main.cpython-314.pyc
- ┃ ┃ ┃ ┣ 📜merge_oficial_local_info.cpython-314.pyc
- ┃ ┃ ┃ ┣ 📜read_loc_stations_IPMA.cpython-314.pyc
- ┃ ┃ ┃ ┗ 📜__init__.cpython-314.pyc
  ┃ ┃ ┣ 📜create_local_info_IPMA.py
  ┃ ┃ ┣ 📜main.py
  ┃ ┃ ┣ 📜merge_oficial_local_info.py
  ┃ ┃ ┣ 📜read_loc_stations_IPMA.py
  ┃ ┃ ┗ 📜__init__.py
  ┃ ┣ 📂METEOSTAT
- ┃ ┃ ┣ 📂__pycache__
- ┃ ┃ ┃ ┣ 📜main.cpython-314.pyc
- ┃ ┃ ┃ ┗ 📜__init__.cpython-314.pyc
  ┃ ┃ ┣ 📜get_api_data.py
  ┃ ┃ ┣ 📜main.py
  ┃ ┃ ┗ 📜__init__.py
- ┃ ┣ 📂__pycache__
- ┃ ┃ ┣ 📜main.cpython-314.pyc
- ┃ ┃ ┗ 📜__init__.cpython-314.pyc
  ┃ ┣ 📜main.py
  ┃ ┗ 📜__init__.py
- ┣ 📂__configue__
- ┃ ┣ 📜config.py
+ ┣ 📂__configure__
+ ┃ ┣ 📜dependencies.py
  ┃ ┣ 📜generate_files.py
+ ┃ ┣ 📜main.py
  ┃ ┣ 📜paths.py
  ┃ ┗ 📜__init__.py
- ┣ 📜.gitignore
+ ┣ 📜main.py
  ┣ 📜ponto_de_situacao.txt
  ┣ 📜README.md
  ┣ 📜requirements.txt

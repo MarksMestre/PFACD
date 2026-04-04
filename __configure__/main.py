@@ -8,7 +8,6 @@ sys.path.insert(0, base_path)
 
 from __configure__.dependencies import main as install_dependencies
 from __configure__.paths import main as ensure_paths
-from __configure__.generate_files import main as create_project
 
 
 def main():
@@ -16,7 +15,6 @@ def main():
     print("Iniciando a configuração do projeto")
     install_dependencies()
     ensure_paths()
-    create_project()
     finish_time = time.time()
     final_time = finish_time - start_time
     print(f"Configuração de projeto finalizado em {final_time}s")
