@@ -24,7 +24,8 @@ def main():
     from __pipeline__.main import main as pipeline
     pipeline()
     finish = time.time()
-    final_time = time.time()
+    final_time = finish - start
+
     print(f"Finalizado main process em {final_time}s")
 
 if __name__ == "__main__":
