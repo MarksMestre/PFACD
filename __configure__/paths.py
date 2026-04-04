@@ -1,7 +1,8 @@
 import os
 
 # Pasta Raiz do Projeto 
-BASE_FOLDER = os.path.dirname(os.path.abspath(__file__))
+__configure__path = os.path.dirname(os.path.abspath(__file__))
+BASE_FOLDER = os.path.dirname(__configure__path)
 
 
 # ======================================================================================================================================
@@ -66,21 +67,21 @@ METEOSTAT_FOLDER = os.path.join(METEO_FOLDER, "METEOSTAT")
 
 
 # ======================================================================================================================================
-# --- POPULATION DATA ---
-POP_FOLDER = os.path.join(BASE_FOLDER, "population")
+# --- Demography DATA ---
+DEMOGRAPHY_FOLDER = os.path.join(BASE_FOLDER, "demography")
 
 
 
 
 # Densidade
-DENSIDADE_FOLDER = os.path.join(POP_FOLDER, "densidade_populacional")
-DENSIDADE_CSV = os.path.join(DENSIDADE_FOLDER, "densidade_populacional.csv")
+DENSIDADE_FOLDER = os.path.join(DEMOGRAPHY_FOLDER, "population_density")
+DENSIDADE_CSV = os.path.join(DENSIDADE_FOLDER, "population_density.csv")
 
 
 
 
 # População Total
-POP_TOTAL_FOLDER = os.path.join(POP_FOLDER, "populacao_total")
+POP_TOTAL_FOLDER = os.path.join(DEMOGRAPHY_FOLDER, "population_total")
 POP_TOTAL_DATA_FOLDER = os.path.join(POP_TOTAL_FOLDER, "data")
 POP_TOTAL_CSV = os.path.join(POP_TOTAL_DATA_FOLDER, "populacao_total.csv")
 POP_WEIGHTS_CSV = os.path.join(POP_TOTAL_DATA_FOLDER, "populacao_total_weights.csv")
@@ -93,7 +94,7 @@ POP_FINAL_DF = os.path.join(POP_TOTAL_DATA_FOLDER, "populacao_com_previsao_2025.
 
 
 
-def ensure_paths():
+def main():
     """
     Varre as variáveis globais do script e cria automaticamente 
     qualquer caminho que termine em 'FOLDER', 'DATA' ou 'DIR'.
@@ -129,7 +130,8 @@ def ensure_paths():
         if not os.path.exists(folder):
             os.makedirs(folder, exist_ok=True)
             print(f"[OK] Pasta extra criada: {folder}")
+    print("--- Toda a estrutura foi criada com sucesso ---")
 
 if __name__ == "__main__":
     print(f"Base Folder: {BASE_FOLDER}")
-    ensure_paths()
+    main()

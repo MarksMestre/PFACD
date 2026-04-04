@@ -8,55 +8,12 @@ Este repositório contém o ecossistema de dados desenvolvido para o projeto "Ca
 
 
 ```text
-{📦PFACD
- ┣ 📂meteorology
- ┃ ┣ 📂CAMS
- ┃ ┃ ┣ 📂1day
- ┃ ┃ ┃ ┣ 📂processed_data
- ┃ ┃ ┃ ┣ 📂raw_data
- ┃ ┃ ┃ ┗ 📜merged.csv
- ┃ ┃ ┣ 📂1month
- ┃ ┃ ┃ ┣ 📂processed_data
- ┃ ┃ ┃ ┣ 📂raw_data
- ┃ ┃ ┃ ┗ 📜merged.csv
- ┃ ┃ ┣ 📂data_final
- ┃ ┃ ┃ ┣ 📜merged_1day_copy_month.csv
- ┃ ┃ ┃ ┣ 📜merged_1day_copy_semester.csv
- ┃ ┃ ┃ ┗ 📜merged_1day_copy_trimester.csv
- ┃ ┃ ┣ 📂data_merged
- ┃ ┃ ┃ ┣ 📜merged_1day.csv
- ┃ ┃ ┃ ┗ 📜merged_1month.csv
- ┃ ┃ ┣ 📜aggregation_day.py
- ┃ ┃ ┣ 📜data_api_manual.py
- ┃ ┃ ┣ 📜data_api_opt.py
- ┃ ┃ ┣ 📜data_api_opt_bot.py
- ┃ ┃ ┣ 📜metadados_cams.txt
- ┃ ┃ ┣ 📜process_time_and_concat_api.py
- ┃ ┃ ┣ 📜progress.json
- ┃ ┃ ┗ 📜teste_same_files.py
- ┃ ┣ 📂IPMA
- ┃ ┃ ┣ 📂data_final
- ┃ ┃ ┣ 📂data_input
- ┃ ┃ ┃ ┣ 📜IPMA_stations.csv
- ┃ ┃ ┃ ┣ 📜IPMA_stations.json
- ┃ ┃ ┃ ┣ 📜IPMA_stations_data_oficial.csv
- ┃ ┃ ┃ ┣ 📜IPMA_stations_data_oficial_corrected.csv
- ┃ ┃ ┃ ┗ 📜IPMA_stations_with_location_info.csv
- ┃ ┃ ┣ 📂data_merged
- ┃ ┃ ┃ ┣ 📜conflict_maps.html
- ┃ ┃ ┃ ┣ 📜IPMA_stations_conflict.csv
- ┃ ┃ ┃ ┣ 📜IPMA_stations_conflict_manual.csv
- ┃ ┃ ┃ ┣ 📜IPMA_stations_dont_match.csv
- ┃ ┃ ┃ ┗ 📜IPMA_stations_merged.csv
- ┃ ┃ ┣ 📜create_local_info_IPMA.py
- ┃ ┃ ┣ 📜merge_oficial_local_info.py
- ┃ ┃ ┗ 📜read_loc_stations_IPMA.py
- ┃ ┗ 📂METEOSTAT
- ┃ ┃ ┗ 📜get_api_data.py
- ┣ 📂population
- ┃ ┣ 📂densidade_populacional
- ┃ ┃ ┗ 📜densidade_populacional.csv
- ┃ ┗ 📂populacao_total
+📦PFACD
+ ┣ 📂demography
+ ┃ ┣ 📂population_density
+ ┃ ┃ ┣ 📜population_density.csv
+ ┃ ┃ ┗ 📜__init__.py
+ ┃ ┣ 📂population_total
  ┃ ┃ ┣ 📂data
  ┃ ┃ ┃ ┣ 📜ml_data.csv
  ┃ ┃ ┃ ┣ 📜populacao_com_previsao_2025.csv
@@ -67,13 +24,88 @@ Este repositório contém o ecossistema de dados desenvolvido para o projeto "Ca
  ┃ ┃ ┃ ┣ 📜prediction.csv
  ┃ ┃ ┃ ┗ 📜previsao_oficial_2025.csv
  ┃ ┃ ┣ 📜data_preparation.py
+ ┃ ┃ ┣ 📜main.py
  ┃ ┃ ┣ 📜pipeline.py
  ┃ ┃ ┣ 📜prediction_and_validation.py
- ┃ ┃ ┗ 📜results_visualization.py
- ┣ 📜bots.py
- ┣ 📜config.py
- ┣ 📜paths.py
+ ┃ ┃ ┣ 📜results_visualization.py
+ ┃ ┃ ┗ 📜__init__.py
+ ┃ ┣ 📜main.py
+ ┃ ┗ 📜__init__.py
+ ┣ 📂meteorology
+ ┃ ┣ 📂CAMS
+ ┃ ┃ ┣ 📂1day
+ ┃ ┃ ┃ ┣ 📂processed_data
+ ┃ ┃ ┃ ┗ 📂raw_data
+ ┃ ┃ ┣ 📂1month
+ ┃ ┃ ┃ ┣ 📂processed_data
+ ┃ ┃ ┃ ┗ 📂raw_data
+ ┃ ┃ ┣ 📂data_final
+ ┃ ┃ ┃ ┣ 📜merged_1day_month.csv
+ ┃ ┃ ┃ ┣ 📜merged_1day_semester.csv
+ ┃ ┃ ┃ ┗ 📜merged_1day_trimester.csv
+ ┃ ┃ ┣ 📂data_merged
+ ┃ ┃ ┃ ┣ 📜merged_1day.csv
+ ┃ ┃ ┃ ┗ 📜merged_1month.csv
+ ┃ ┃ ┣ 📂__pycache__
+ ┃ ┃ ┃ ┣ 📜aggregation_day.cpython-314.pyc
+ ┃ ┃ ┃ ┣ 📜main.cpython-314.pyc
+ ┃ ┃ ┃ ┣ 📜process_time_and_concat_api.cpython-314.pyc
+ ┃ ┃ ┃ ┗ 📜__init__.cpython-314.pyc
+ ┃ ┃ ┣ 📜aggregation_day.py
+ ┃ ┃ ┣ 📜data_api_manual.py
+ ┃ ┃ ┣ 📜data_api_opt.py
+ ┃ ┃ ┣ 📜main.py
+ ┃ ┃ ┣ 📜metadados_cams.txt
+ ┃ ┃ ┣ 📜process_time_and_concat_api.py
+ ┃ ┃ ┣ 📜progress.json
+ ┃ ┃ ┣ 📜teste_same_files.py
+ ┃ ┃ ┗ 📜__init__.py
+ ┃ ┣ 📂IPMA
+ ┃ ┃ ┣ 📂data_final
+ ┃ ┃ ┣ 📂data_input
+ ┃ ┃ ┃ ┣ 📜IPMA_stations.csv
+ ┃ ┃ ┃ ┣ 📜IPMA_stations.json
+ ┃ ┃ ┃ ┣ 📜IPMA_stations_data_oficial.csv
+ ┃ ┃ ┃ ┣ 📜IPMA_stations_data_oficial_corrected.csv
+ ┃ ┃ ┃ ┗ 📜IPMA_stations_with_location_info.csv
+ ┃ ┃ ┣ 📂data_merged
+ ┃ ┃ ┃ ┣ 📜conflict_maps_dist.html
+ ┃ ┃ ┃ ┣ 📜IPMA_stations_conflict.csv
+ ┃ ┃ ┃ ┣ 📜IPMA_stations_dont_match.csv
+ ┃ ┃ ┃ ┣ 📜IPMA_stations_dont_match_manual.csv
+ ┃ ┃ ┃ ┣ 📜IPMA_stations_merged.csv
+ ┃ ┃ ┃ ┣ 📜merged_df_maps.html
+ ┃ ┃ ┃ ┗ 📜merged_df_maps_dist.html
+ ┃ ┃ ┣ 📂__pycache__
+ ┃ ┃ ┃ ┣ 📜main.cpython-314.pyc
+ ┃ ┃ ┃ ┣ 📜merge_oficial_local_info.cpython-314.pyc
+ ┃ ┃ ┃ ┣ 📜read_loc_stations_IPMA.cpython-314.pyc
+ ┃ ┃ ┃ ┗ 📜__init__.cpython-314.pyc
+ ┃ ┃ ┣ 📜create_local_info_IPMA.py
+ ┃ ┃ ┣ 📜main.py
+ ┃ ┃ ┣ 📜merge_oficial_local_info.py
+ ┃ ┃ ┣ 📜read_loc_stations_IPMA.py
+ ┃ ┃ ┗ 📜__init__.py
+ ┃ ┣ 📂METEOSTAT
+ ┃ ┃ ┣ 📂__pycache__
+ ┃ ┃ ┃ ┣ 📜main.cpython-314.pyc
+ ┃ ┃ ┃ ┗ 📜__init__.cpython-314.pyc
+ ┃ ┃ ┣ 📜get_api_data.py
+ ┃ ┃ ┣ 📜main.py
+ ┃ ┃ ┗ 📜__init__.py
+ ┃ ┣ 📂__pycache__
+ ┃ ┃ ┣ 📜main.cpython-314.pyc
+ ┃ ┃ ┗ 📜__init__.cpython-314.pyc
+ ┃ ┣ 📜main.py
+ ┃ ┗ 📜__init__.py
+ ┣ 📂__configue__
+ ┃ ┣ 📜config.py
+ ┃ ┣ 📜generate_files.py
+ ┃ ┣ 📜paths.py
+ ┃ ┗ 📜__init__.py
+ ┣ 📜.gitignore
  ┣ 📜ponto_de_situacao.txt
+ ┣ 📜README.md
  ┣ 📜requirements.txt
  ┗ 📜tree.txt
 ``` 
@@ -86,7 +118,7 @@ Este módulo integra múltiplas fontes de dados meteorológicos e ferramentas de
 
 #### **CAMS (Copernicus Atmosphere Monitoring Service)**
 - **Recolha Automática de Dados**: Utiliza a CDS API para descarregar séries temporais especializadas e variáveis atmosféricas em diferentes resoluções temporais (1 dia, 1 mês)
-- **Processamento Paralelo**: Implementa otimizações de fluxo de dados através do módulo `data_api_opt.py` e `data_api_opt_bot.py`, permitindo a ingestão eficiente de grandes volumes de dados
+- **Processamento Paralelo**: Implementa otimizações de fluxo de dados através do módulo `data_api_opt.py` e `data_api_manual.py`, permitindo a ingestão eficiente de grandes volumes de dados
 - **Agregação Temporal**: O script `aggregation_day.py` consolida dados diários em períodos mais extensos (mensais, trimestrais, semestrais)
 - **Gestão de Estado**: Acompanhamento de progresso através de `progress.json` para garantir a recuperação resiliente de transferências interrompidas
 - **Validação de Integridade**: Testes comparativos através de `teste_same_files.py` para assegurar consistência dos dados
@@ -135,3 +167,14 @@ O projeto implementa um fluxo coordenado onde:
 
 Esta arquitetura modular e eficiente permite análises multi-dimensionais da transição energética portuguesa, focando na caracterização de
 Unidades de Produção para Autoconsumo (UPAC) com base em contextos meteorológicos, demográficos e territoriais.
+
+
+## Fluxo de `script`
+
+
+1. Abra a pasta "PFACD". NOTA: Não altere a root para outra subpasta, mantenha-se nesta localização
+2. Corra o `config.py` com o Python. Isto gerará o ambiente virtual `.venv` e irá instalar as bibliotecas presentes no `requirements.txt`
+3. Se o `.venv` ainda não estiver ativado, ative. Se já estiver ativado, pular para passo 4.
+4. Corra o `generate_files.py` para gerar todos os ficheiros  
+
+

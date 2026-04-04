@@ -7,7 +7,7 @@ import sys
 base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 sys.path.insert(0, base_path)
 
-from paths import POP_PRED_OFFICIAL_2025, POP_TOTAL_CSV, POP_TOTAL_DATA_FOLDER, POP_WEIGHTS_CSV, POP_ML_DATA_CSV
+from __configure__.paths import POP_PRED_OFFICIAL_2025, POP_TOTAL_CSV, POP_TOTAL_DATA_FOLDER, POP_WEIGHTS_CSV, POP_ML_DATA_CSV
 
 os.makedirs(POP_TOTAL_DATA_FOLDER, exist_ok=True)
 

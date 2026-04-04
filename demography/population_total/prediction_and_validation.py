@@ -10,7 +10,7 @@ import sys
 base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 sys.path.insert(0, base_path)
 
-from paths import POP_ML_DATA_CSV, POP_WEIGHTS_CSV, POP_PRED_OFFICIAL_2025
+from __configure__.paths import POP_ML_DATA_CSV, POP_WEIGHTS_CSV, POP_PRED_OFFICIAL_2025
 
 
 
@@ -187,7 +187,8 @@ def get_better_results(data_ml, df_input, pred_oficial):
     ]
 
     best_score = float('inf')
-    best_features = None
+    best_features = best_n_estimators = best_max_depth = best_model_trained = None 
+    
 
     for config in configs:
         print(f"\n> Testando configuração: {config}")
@@ -208,7 +209,7 @@ def get_better_results(data_ml, df_input, pred_oficial):
         
         if current_score < best_score:
             best_score = current_score
-            best_model_trained: RandomForestRegressor = trained_model
+            best_model_trained = trained_model
             best_n_estimators=config['n_estimators'], 
             best_max_depth=config['max_depth'],
             best_features = features

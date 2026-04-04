@@ -7,7 +7,7 @@ import sys
 base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 sys.path.insert(0, base_path)
 
-from paths import CAMS_1DAY, CAMS_1MONTH
+from __configure__.paths import CAMS_1DAY, CAMS_1MONTH
 
 
 def get_files(time_step_folder):

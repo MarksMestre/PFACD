@@ -86,9 +86,9 @@ IPMA/data_final/
 
 # Population
 # Ignoramos os dados de treino/ML, mantemos apenas os oficiais
-population/populacao_total/data/*
-!population/populacao_total/data/populacao_total.csv
-!population/populacao_total/data/previsao_oficial_2025.csv
+demography/population_total/data/*
+!demography/population_total/data/populacao_total.csv
+!demography/population_total/data/previsao_oficial_2025.csv
 
 # Outros
 data_merged/

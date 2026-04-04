@@ -6,7 +6,7 @@ import sys
 base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 sys.path.insert(0, base_path)
 
-from paths import CAMS_MERGED_FOLDER, CAMS_FINAL_DATA
+from __configure__.paths import CAMS_MERGED_FOLDER, CAMS_FINAL_DATA
 
 
 def aplicar_metricas(df, group_cols):
@@ -72,7 +72,7 @@ def aggreggate_selection(df, time_agg):
         raise ValueError("Opção de agregação inválida")
 
 
-def main(using_copy: bool = False):
+def main_loop(using_copy: bool = False):
 
     if using_copy:
 
@@ -102,5 +102,13 @@ def main(using_copy: bool = False):
             df.to_csv(time_agg_output_path, sep=",", index=False)
 
 
+
+def main():
+    main_loop()
+
+    return 0
+
+
 if __name__ == "__main__":
     main()
+    

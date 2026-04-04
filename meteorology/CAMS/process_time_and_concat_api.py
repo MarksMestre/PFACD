@@ -8,7 +8,7 @@ import sys
 base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 sys.path.insert(0, base_path)
 
-from paths import CAMS_FOLDER, CAMS_MERGED_FOLDER
+from __configure__.paths import CAMS_FOLDER, CAMS_MERGED_FOLDER
 
 
 def acerto_months(df):
@@ -97,13 +97,8 @@ def generate_report(merged_dfs: dict):
         print("-" * 40)
 
 
-def main():
-    using_copy_input = int(input('''Está a usar uma pasta de copy?
-[ 0 ] Não, estou a usar a pasta original
-[ 1 ] Sim, estou a usar a pasta de copy 
+def main_loop(using_copy):
 
->>> '''))
-    using_copy = True if using_copy_input == 1 else False
     start_time = time.time()
     print("Iniciando processamento e concatenação dos dados...")
     print(40*"-")
@@ -144,6 +139,11 @@ def main():
     end_time = time.time()
 
     print(f"Total processing time: {end_time - start_time:.2f} seconds")
+    return 0
+
+
+def main():
+    main_loop(using_copy=False)
     return 0 
     
         

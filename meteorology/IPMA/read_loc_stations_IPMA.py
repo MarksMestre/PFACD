@@ -7,7 +7,7 @@ import sys
 base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 sys.path.insert(0, base_path)
 
-from paths import IPMA_STATIONS_JSON, IPMA_STATIONS_CSV
+from __configure__.paths import IPMA_STATIONS_JSON, IPMA_STATIONS_CSV
 
 
 def read_stations(stations_file_json):

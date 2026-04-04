@@ -6,7 +6,7 @@ import sys
 base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 sys.path.insert(0, base_path)
 
-from paths import POP_PREDICTION_OUTPUT, POP_WEIGHTS_CSV, POP_FINAL_DF
+from __configure__.paths import POP_PREDICTION_OUTPUT, POP_WEIGHTS_CSV, POP_FINAL_DF
 
 
 def main():

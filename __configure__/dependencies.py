@@ -2,8 +2,9 @@ import subprocess
 import sys
 import os
 import time
-from paths import ensure_paths
 
+# Garante que a raiz está no path para os imports funcionarem
+sys.path.insert(0, os.path.abspath(os.path.dirname(os.path.dirname(__file__))))
 
 def setup():
     # 1. Criar o ambiente virtual (.venv)
@@ -47,10 +48,9 @@ def setup():
         print(f"\n--- Erro durante a instalação: {e} ---")
 
 
-def configuration():
+def main():
     setup()
-    ensure_paths()
 
 
 if __name__ == "__main__":
-    configuration()
+    main()

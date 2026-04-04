@@ -10,7 +10,7 @@ import sys
 base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 sys.path.insert(0, base_path)
 
-from paths import IPMA_STATIONS_JSON, IPMA_STATIONS_LOCATION_INFO
+from __configure__.paths import IPMA_STATIONS_JSON, IPMA_STATIONS_LOCATION_INFO
 
 # Configurar base de dados de Portugal (faz o download na 1ª vez)
 nomi = pgeocode.Nominatim('pt')
