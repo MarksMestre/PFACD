@@ -65,6 +65,24 @@ IPMA_FINAL_FILE = os.path.join(IPMA_FINAL_DATA, "final_IPMA_data.csv")
 
 # METEOSTAT
 METEOSTAT_FOLDER = os.path.join(METEO_FOLDER, "METEOSTAT")
+
+
+# Stations data folder
+METEOSTAT_STATIONS_DATA_FOLDER = os.path.join(METEOSTAT_FOLDER, "stations")
+
+# Data Input
+METEOSTAT_STATIONS_INPUT_DATA = os.path.join(METEOSTAT_STATIONS_DATA_FOLDER, "data_input")
+METEOSTAT_INVENTORY_STATIONS_DATA = os.path.join(METEOSTAT_STATIONS_INPUT_DATA, "stations.db")
+
+# Data intermediate
+METEOSTAT_STATIONS_INTERMEDIATE_DATA = os.path.join(METEOSTAT_STATIONS_DATA_FOLDER, "data_intermediate")
+
+
+# Data final
+# Data intermediate
+METEOSTAT_STATIONS_FINAL_DATA = os.path.join(METEOSTAT_STATIONS_DATA_FOLDER, "data_final")
+# Stations map
+METEOSTAT_STATIONS_MAP = os.path.join(METEOSTAT_STATIONS_FINAL_DATA, "stations_map.html")
 # ======================================================================================================================================
 
 
