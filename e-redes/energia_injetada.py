@@ -4,6 +4,15 @@ import matplotlib
 matplotlib.use("TkAgg")
 import matplotlib.pyplot as plt
 pd.set_option('display.max_columns', None)
+import time
+import os
+import sys
+
+# Sobe até a root do projeto
+base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.insert(0, base_path)
+
+from __configure__.paths import *
 
 df = pd.read_csv("energia_injectada_upac.csv", sep=";")
 
