@@ -99,8 +99,8 @@ upacs.columns = upacs.columns.str.strip()
 precos.columns = precos.columns.str.strip()
 
 # Ver estrutura dos dados
-summary_df(upacs, "UPACs")
-summary_df(precos, "Preços")
+# summary_df(upacs, "UPACs")
+# summary_df(precos, "Preços")
 
 # Criar coluna data
 def trimestre_para_data(trimestre):
@@ -166,6 +166,61 @@ upacs_anual["Potência média por instalação (kW)"] = (
 upacs_preco_anual = upacs_anual.merge(precos_long, on="Ano", how="inner")
 
 
+# =========================
+# LEITURA DA BASE ENERGIA INJETADA
+# =========================
+
+PATH_ENERGIA = os.path.join(
+    BASE_DIR,
+    "e-redes",
+    "data_input",
+    "energia_injectada_upac.csv"
+)
+
+energia = pd.read_csv(
+    PATH_ENERGIA,
+    sep=";",
+    encoding="utf-8-sig"
+)
+
+energia.columns = energia.columns.str.strip()
+
+energia["Data"] = pd.to_datetime(energia["Data"], format="%Y-%m")
+energia["Ano"] = energia["Data"].dt.year
+energia["Mês"] = energia["Data"].dt.month
+
+energia["Potência Instalada (kW)"] = pd.to_numeric(
+    energia["Potência Instalada (kW)"],
+    errors="coerce"
+)
+
+energia["Número de Instalações"] = pd.to_numeric(
+    energia["Número de Instalações"],
+    errors="coerce"
+)
+
+energia["Energia Injetada (kWh)"] = pd.to_numeric(
+    energia["Energia Injetada (kWh)"],
+    errors="coerce"
+)
+
+energia = energia.dropna(
+    subset=[
+        "Potência Instalada (kW)",
+        "Número de Instalações",
+        "Energia Injetada (kWh)"
+    ]
+)
+
+energia["kWh por instalação"] = (
+    energia["Energia Injetada (kWh)"] / energia["Número de Instalações"]
+)
+
+energia["kWh por kW instalado"] = (
+    energia["Energia Injetada (kWh)"] / energia["Potência Instalada (kW)"]
+)
+
+# summary_df(energia, "Injetada")
 # # =========================
 # # 1. EVOLUÇÃO DO NÚMERO TOTAL DE INSTALAÇÕES
 # # =========================
@@ -1046,66 +1101,767 @@ upacs_preco_anual = upacs_anual.merge(precos_long, on="Ano", how="inner")
 # plt.xlabel("Peso na potência nacional (%)")
 # plt.ylabel("Distrito")
 # guardar_grafico("30_peso_distrito_potencia_nacional.png")
+#
+# # =========================
+# # 31. EVOLUÇÃO DA POTÊNCIA POR ESCALÃO + PREÇO USD/kW
+# # =========================
+#
+# potencia_escalao_tempo = (
+#     upacs
+#     .groupby(["Data", "Escalão de potência instalada (kW)"])["Potência Total Instalada UPAC (kW)"]
+#     .sum()
+#     .reset_index()
+# )
+#
+# # Preço anual como data real
+# preco_anual = precos_long.copy()
+# preco_anual["Data"] = pd.to_datetime(preco_anual["Ano"].astype(str) + "-01-01")
+#
+# # Cortar preço para começar apenas a partir do início dos dados das UPACs
+# data_inicio = potencia_escalao_tempo["Data"].min()
+# data_fim = potencia_escalao_tempo["Data"].max()
+#
+# preco_anual = preco_anual[
+#     (preco_anual["Data"] >= data_inicio) &
+#     (preco_anual["Data"] <= data_fim)
+# ].copy()
+#
+# fig, ax1 = plt.subplots(figsize=(14, 7))
+#
+# # Usar exatamente a lógica de cores do seaborn como no gráfico 14
+# sns.lineplot(
+#     data=potencia_escalao_tempo,
+#     x="Data",
+#     y="Potência Total Instalada UPAC (kW)",
+#     hue="Escalão de potência instalada (kW)",
+#     marker="o",
+#     ax=ax1
+# )
+#
+# ax1.set_xlabel("Trimestre")
+# ax1.set_ylabel("Potência total instalada (kW)")
+# ax1.legend(title="Escalão", bbox_to_anchor=(1.08, 1), loc="upper left")
+#
+# # Eixo direito para o preço
+# ax2 = ax1.twinx()
+#
+# ax2.plot(
+#     preco_anual["Data"],
+#     preco_anual["Preco_USD_kW"],
+#     marker="o",
+#     linestyle="--",
+#     linewidth=3,
+#     color="black",
+#     label="Preço USD/kW"
+# )
+#
+# ax2.set_ylabel("Preço USD/kW", color="black")
+# ax2.tick_params(axis="y", labelcolor="black")
+# ax2.legend(loc="upper right")
+#
+# plt.title("Evolução da potência instalada por escalão de potência e preço USD/kW")
+#
+# guardar_grafico("31_potencia_por_escalao_vs_preco_corrigido.png")
+#
+#
+# # =========================
+# # 32. EVOLUÇÃO MENSAL DA ENERGIA TOTAL INJETADA
+# # =========================
+#
+# energia_mensal = (
+#     energia
+#     .groupby("Data")["Energia Injetada (kWh)"]
+#     .sum()
+#     .reset_index()
+# )
+#
+# plt.figure(figsize=(14, 6))
+# sns.lineplot(
+#     data=energia_mensal,
+#     x="Data",
+#     y="Energia Injetada (kWh)",
+#     marker="o"
+# )
+# plt.title("Evolução mensal da energia total injetada pelas UPAC")
+# plt.xlabel("Data")
+# plt.ylabel("Energia injetada (kWh)")
+# guardar_grafico("32_evolucao_mensal_energia_injetada.png")
+#
+#
+# # =========================
+# # 33. ENERGIA MÉDIA INJETADA POR MÊS
+# # =========================
+#
+# energia_mes = (
+#     energia
+#     .groupby("Mês")["Energia Injetada (kWh)"]
+#     .mean()
+#     .reset_index()
+# )
+#
+# plt.figure(figsize=(10, 6))
+# sns.lineplot(
+#     data=energia_mes,
+#     x="Mês",
+#     y="Energia Injetada (kWh)",
+#     marker="o"
+# )
+# plt.title("Energia média injetada por mês")
+# plt.xlabel("Mês")
+# plt.ylabel("Energia média injetada (kWh)")
+# plt.xticks(range(1, 13))
+# guardar_grafico("33_energia_media_por_mes.png")
+#
+#
+# # =========================
+# # 34. ENERGIA INJETADA POR MÊS E ANO
+# # =========================
+#
+# energia_mes_ano = (
+#     energia
+#     .groupby(["Ano", "Mês"])["Energia Injetada (kWh)"]
+#     .sum()
+#     .reset_index()
+# )
+#
+# plt.figure(figsize=(12, 6))
+# sns.lineplot(
+#     data=energia_mes_ano,
+#     x="Mês",
+#     y="Energia Injetada (kWh)",
+#     hue="Ano",
+#     marker="o"
+# )
+# plt.title("Energia injetada por mês e ano")
+# plt.xlabel("Mês")
+# plt.ylabel("Energia injetada (kWh)")
+# plt.xticks(range(1, 13))
+# guardar_grafico("34_energia_por_mes_e_ano.png")
+#
+#
+# # =========================
+# # 35. TOP 10 DISTRITOS POR ENERGIA INJETADA
+# # =========================
+#
+# energia_distrito = (
+#     energia
+#     .groupby("Distrito")["Energia Injetada (kWh)"]
+#     .sum()
+#     .sort_values(ascending=False)
+#     .head(10)
+#     .reset_index()
+# )
+#
+# plt.figure(figsize=(12, 6))
+# sns.barplot(
+#     data=energia_distrito,
+#     x="Energia Injetada (kWh)",
+#     y="Distrito"
+# )
+# plt.title("Top 10 distritos por energia total injetada")
+# plt.xlabel("Energia injetada (kWh)")
+# plt.ylabel("Distrito")
+# guardar_grafico("35_top10_distritos_energia_injetada.png")
+#
+#
+# # =========================
+# # 36. TOP 10 DISTRITOS POR kWh POR INSTALAÇÃO
+# # =========================
+#
+# eficiencia_inst_distrito = (
+#     energia
+#     .groupby("Distrito")
+#     .agg({
+#         "Energia Injetada (kWh)": "sum",
+#         "Número de Instalações": "sum"
+#     })
+#     .reset_index()
+# )
+#
+# eficiencia_inst_distrito["kWh por instalação"] = (
+#     eficiencia_inst_distrito["Energia Injetada (kWh)"]
+#     / eficiencia_inst_distrito["Número de Instalações"]
+# )
+#
+# eficiencia_inst_distrito = (
+#     eficiencia_inst_distrito
+#     .sort_values("kWh por instalação", ascending=False)
+#     .head(10)
+# )
+#
+# plt.figure(figsize=(12, 6))
+# sns.barplot(
+#     data=eficiencia_inst_distrito,
+#     x="kWh por instalação",
+#     y="Distrito"
+# )
+# plt.title("Top 10 distritos por energia injetada por instalação")
+# plt.xlabel("kWh por instalação")
+# plt.ylabel("Distrito")
+# guardar_grafico("36_top10_distritos_kwh_por_instalacao.png")
+#
+#
+# # =========================
+# # 37. TOP 10 DISTRITOS POR kWh POR kW INSTALADO
+# # =========================
+#
+# excedente_kw_distrito = (
+#     energia
+#     .groupby("Distrito")
+#     .agg({
+#         "Energia Injetada (kWh)": "sum",
+#         "Potência Instalada (kW)": "sum"
+#     })
+#     .reset_index()
+# )
+#
+# excedente_kw_distrito["Excedente por kW (kWh/kW)"] = (
+#     excedente_kw_distrito["Energia Injetada (kWh)"]
+#     / excedente_kw_distrito["Potência Instalada (kW)"]
+# )
+#
+# excedente_kw_distrito = excedente_kw_distrito.sort_values(
+#     "Excedente por kW (kWh/kW)",
+#     ascending=False
+# )
+#
+# plt.figure(figsize=(12, 6))
+# sns.barplot(
+#     data=excedente_kw_distrito,
+#     x="Excedente por kW (kWh/kW)",
+#     y="Distrito"
+# )
+# plt.title("Excedente de energia por kW instalado por distrito")
+# plt.xlabel("kWh injetados por kW instalado")
+# plt.ylabel("Distrito")
+# guardar_grafico("37_excedente_kw_distrito.png")
+#
+#
+# # =========================
+# # 38. POTÊNCIA INSTALADA VS ENERGIA INJETADA
+# # =========================
+#
+# energia_distrito_scatter = (
+#     energia
+#     .groupby("Distrito")
+#     .agg({
+#         "Potência Instalada (kW)": "sum",
+#         "Energia Injetada (kWh)": "sum"
+#     })
+#     .reset_index()
+# )
+#
+# plt.figure(figsize=(12, 7))
+# sns.scatterplot(
+#     data=energia_distrito_scatter,
+#     x="Potência Instalada (kW)",
+#     y="Energia Injetada (kWh)",
+#     s=120
+# )
+#
+# for _, row in energia_distrito_scatter.iterrows():
+#     plt.text(
+#         row["Potência Instalada (kW)"],
+#         row["Energia Injetada (kWh)"],
+#         row["Distrito"],
+#         fontsize=8
+#     )
+#
+# plt.title("Relação entre potência instalada e energia injetada por distrito")
+# plt.xlabel("Potência instalada (kW)")
+# plt.ylabel("Energia injetada (kWh)")
+# guardar_grafico("38_potencia_vs_energia_por_distrito.png")
+#
+#
+# # =========================
+# # 39. NÚMERO DE INSTALAÇÕES VS ENERGIA INJETADA
+# # =========================
+#
+# energia_inst_scatter = (
+#     energia
+#     .groupby("Distrito")
+#     .agg({
+#         "Número de Instalações": "sum",
+#         "Energia Injetada (kWh)": "sum"
+#     })
+#     .reset_index()
+# )
+#
+# plt.figure(figsize=(12, 7))
+# sns.scatterplot(
+#     data=energia_inst_scatter,
+#     x="Número de Instalações",
+#     y="Energia Injetada (kWh)",
+#     s=120
+# )
+#
+# for _, row in energia_inst_scatter.iterrows():
+#     plt.text(
+#         row["Número de Instalações"],
+#         row["Energia Injetada (kWh)"],
+#         row["Distrito"],
+#         fontsize=8
+#     )
+#
+# plt.title("Relação entre número de instalações e energia injetada por distrito")
+# plt.xlabel("Número de instalações")
+# plt.ylabel("Energia injetada (kWh)")
+# guardar_grafico("39_instalacoes_vs_energia_por_distrito.png")
+#
+#
+# # =========================
+# # 40. HEATMAP: ENERGIA INJETADA POR DISTRITO E MÊS
+# # =========================
+#
+# heatmap_energia = (
+#     energia
+#     .groupby(["Distrito", "Mês"])["Energia Injetada (kWh)"]
+#     .sum()
+#     .reset_index()
+# )
+#
+# heatmap_pivot = heatmap_energia.pivot(
+#     index="Distrito",
+#     columns="Mês",
+#     values="Energia Injetada (kWh)"
+# )
+#
+# plt.figure(figsize=(14, 8))
+# sns.heatmap(
+#     heatmap_pivot,
+#     cmap="YlOrRd",
+#     linewidths=0.5
+# )
+# plt.title("Heatmap da energia injetada por distrito e mês")
+# plt.xlabel("Mês")
+# plt.ylabel("Distrito")
+# guardar_grafico("40_heatmap_energia_distrito_mes.png")
+#
+#
+# # =========================
+# # 41. EVOLUÇÃO DO kWh POR kW INSTALADO AO LONGO DO TEMPO
+# # =========================
+#
+# excedente_tempo = (
+#     energia
+#     .groupby("Data")
+#     .agg({
+#         "Energia Injetada (kWh)": "sum",
+#         "Potência Instalada (kW)": "sum"
+#     })
+#     .reset_index()
+# )
+#
+# excedente_tempo["Excedente por kW"] = (
+#     excedente_tempo["Energia Injetada (kWh)"]
+#     / excedente_tempo["Potência Instalada (kW)"]
+# )
+#
+# plt.figure(figsize=(14, 6))
+# sns.lineplot(
+#     data=excedente_tempo,
+#     x="Data",
+#     y="Excedente por kW",
+#     marker="o"
+# )
+# plt.title("Evolução do excedente de energia por kW instalado")
+# plt.xlabel("Data")
+# plt.ylabel("kWh injetados por kW instalado")
+# guardar_grafico("41_evolucao_excedente_kw.png")
+#
+# # =========================
+# # 42. BOXPLOT DA ENERGIA INJETADA POR MÊS
+# # =========================
+#
+# plt.figure(figsize=(12, 6))
+# sns.boxplot(
+#     data=energia,
+#     x="Mês",
+#     y="Energia Injetada (kWh)"
+# )
+# plt.title("Distribuição da energia injetada por mês")
+# plt.xlabel("Mês")
+# plt.ylabel("Energia injetada (kWh)")
+# guardar_grafico("42_boxplot_energia_por_mes.png")
+#
+#
+# # =========================
+# # 43. BOXPLOT DO kWh POR kW INSTALADO POR MÊS
+# # =========================
+#
+# plt.figure(figsize=(12, 6))
+# sns.boxplot(
+#     data=energia,
+#     x="Mês",
+#     y="kWh por kW instalado"
+# )
+# plt.title("Distribuição da energia por kW instalado por mês")
+# plt.xlabel("Mês")
+# plt.ylabel("kWh por kW instalado")
+# guardar_grafico("43_boxplot_kwh_por_kw_mes.png")
+#
+#
+# # =========================
+# # 44. EVOLUÇÃO DA ENERGIA INJETADA POR DISTRITO — TOP 5
+# # =========================
+#
+# top5_energia_distritos = (
+#     energia
+#     .groupby("Distrito")["Energia Injetada (kWh)"]
+#     .sum()
+#     .sort_values(ascending=False)
+#     .head(5)
+#     .index
+# )
+#
+# energia_top5_tempo = (
+#     energia[energia["Distrito"].isin(top5_energia_distritos)]
+#     .groupby(["Data", "Distrito"])["Energia Injetada (kWh)"]
+#     .sum()
+#     .reset_index()
+# )
+#
+# plt.figure(figsize=(14, 7))
+# sns.lineplot(
+#     data=energia_top5_tempo,
+#     x="Data",
+#     y="Energia Injetada (kWh)",
+#     hue="Distrito",
+#     marker="o"
+# )
+# plt.title("Evolução da energia injetada nos 5 distritos com maior energia total")
+# plt.xlabel("Data")
+# plt.ylabel("Energia injetada (kWh)")
+# plt.legend(title="Distrito", bbox_to_anchor=(1.05, 1), loc="upper left")
+# guardar_grafico("44_evolucao_energia_top5_distritos.png")
+#
+#
+# # =========================
+# # 45. EVOLUÇÃO DO kWh POR INSTALAÇÃO
+# # =========================
+#
+# kwh_inst_tempo = (
+#     energia
+#     .groupby("Data")
+#     .agg({
+#         "Energia Injetada (kWh)": "sum",
+#         "Número de Instalações": "sum"
+#     })
+#     .reset_index()
+# )
+#
+# kwh_inst_tempo["kWh por instalação"] = (
+#     kwh_inst_tempo["Energia Injetada (kWh)"]
+#     / kwh_inst_tempo["Número de Instalações"]
+# )
+#
+# plt.figure(figsize=(14, 6))
+# sns.lineplot(
+#     data=kwh_inst_tempo,
+#     x="Data",
+#     y="kWh por instalação",
+#     marker="o"
+# )
+# plt.title("Evolução da energia injetada por instalação")
+# plt.xlabel("Data")
+# plt.ylabel("kWh por instalação")
+# guardar_grafico("45_evolucao_kwh_por_instalacao.png")
+#
+#
+# # =========================
+# # 46. ENERGIA INJETADA POR NÍVEL DE TENSÃO
+# # =========================
+#
+# energia_tensao = (
+#     energia
+#     .groupby("Nível de Tensão")["Energia Injetada (kWh)"]
+#     .sum()
+#     .sort_values(ascending=False)
+#     .reset_index()
+# )
+#
+# plt.figure(figsize=(10, 6))
+# sns.barplot(
+#     data=energia_tensao,
+#     x="Energia Injetada (kWh)",
+#     y="Nível de Tensão"
+# )
+# plt.title("Energia total injetada por nível de tensão")
+# plt.xlabel("Energia injetada (kWh)")
+# plt.ylabel("Nível de tensão")
+# guardar_grafico("46_energia_por_nivel_tensao.png")
+#
+#
+# # =========================
+# # 47. POTÊNCIA INSTALADA POR NÍVEL DE TENSÃO
+# # =========================
+#
+# potencia_tensao = (
+#     energia
+#     .groupby("Nível de Tensão")["Potência Instalada (kW)"]
+#     .sum()
+#     .sort_values(ascending=False)
+#     .reset_index()
+# )
+#
+# plt.figure(figsize=(10, 6))
+# sns.barplot(
+#     data=potencia_tensao,
+#     x="Potência Instalada (kW)",
+#     y="Nível de Tensão"
+# )
+# plt.title("Potência instalada por nível de tensão")
+# plt.xlabel("Potência instalada (kW)")
+# plt.ylabel("Nível de tensão")
+# guardar_grafico("47_potencia_por_nivel_tensao.png")
+#
+#
+# # =========================
+# # 48. kWh POR kW INSTALADO POR NÍVEL DE TENSÃO
+# # =========================
+#
+# eficiencia_tensao = (
+#     energia
+#     .groupby("Nível de Tensão")
+#     .agg({
+#         "Energia Injetada (kWh)": "sum",
+#         "Potência Instalada (kW)": "sum"
+#     })
+#     .reset_index()
+# )
+#
+# eficiencia_tensao["kWh por kW instalado"] = (
+#     eficiencia_tensao["Energia Injetada (kWh)"]
+#     / eficiencia_tensao["Potência Instalada (kW)"]
+# )
+#
+# eficiencia_tensao = eficiencia_tensao.sort_values(
+#     "kWh por kW instalado",
+#     ascending=False
+# )
+#
+# plt.figure(figsize=(10, 6))
+# sns.barplot(
+#     data=eficiencia_tensao,
+#     x="kWh por kW instalado",
+#     y="Nível de Tensão"
+# )
+# plt.title("Energia injetada por kW instalado por nível de tensão")
+# plt.xlabel("kWh por kW instalado")
+# plt.ylabel("Nível de tensão")
+# guardar_grafico("48_kwh_por_kw_por_nivel_tensao.png")
+#
+#
+# # =========================
+# # 49. CURVA ACUMULADA DA ENERGIA INJETADA POR DISTRITO
+# # =========================
+#
+# energia_distrito_acumulada = (
+#     energia
+#     .groupby("Distrito")["Energia Injetada (kWh)"]
+#     .sum()
+#     .sort_values(ascending=False)
+#     .reset_index()
+# )
+#
+# energia_distrito_acumulada["Percentagem acumulada"] = (
+#     energia_distrito_acumulada["Energia Injetada (kWh)"].cumsum()
+#     / energia_distrito_acumulada["Energia Injetada (kWh)"].sum()
+#     * 100
+# )
+#
+# plt.figure(figsize=(12, 6))
+# sns.lineplot(
+#     data=energia_distrito_acumulada,
+#     x=range(1, len(energia_distrito_acumulada) + 1),
+#     y="Percentagem acumulada",
+#     marker="o"
+# )
+# plt.title("Concentração acumulada da energia injetada por distrito")
+# plt.xlabel("Distritos ordenados por energia injetada")
+# plt.ylabel("Percentagem acumulada da energia (%)")
+# guardar_grafico("49_concentracao_acumulada_energia_distrito.png")
+#
+#
+# # =========================
+# # 50. PREÇO USD/kW VS ENERGIA INJETADA ANUAL
+# # =========================
+#
+# energia_anual = (
+#     energia
+#     .groupby("Ano")["Energia Injetada (kWh)"]
+#     .sum()
+#     .reset_index()
+# )
+#
+# energia_preco_anual = energia_anual.merge(precos_long, on="Ano", how="inner")
+#
+# fig, ax1 = plt.subplots(figsize=(12, 6))
+#
+# ax1.plot(
+#     energia_preco_anual["Ano"],
+#     energia_preco_anual["Energia Injetada (kWh)"],
+#     marker="o",
+#     linewidth=2,
+#     color="tab:blue",
+#     label="Energia injetada"
+# )
+#
+# ax1.set_xlabel("Ano")
+# ax1.set_ylabel("Energia injetada (kWh)", color="tab:blue")
+# ax1.tick_params(axis="y", labelcolor="tab:blue")
+#
+# ax2 = ax1.twinx()
+#
+# ax2.plot(
+#     energia_preco_anual["Ano"],
+#     energia_preco_anual["Preco_USD_kW"],
+#     marker="o",
+#     linestyle="--",
+#     linewidth=2,
+#     color="black",
+#     label="Preço USD/kW"
+# )
+#
+# ax2.set_ylabel("Preço USD/kW", color="black")
+# ax2.tick_params(axis="y", labelcolor="black")
+#
+# plt.title("Energia injetada anual vs preço USD/kW")
+#
+# lines_1, labels_1 = ax1.get_legend_handles_labels()
+# lines_2, labels_2 = ax2.get_legend_handles_labels()
+# plt.legend(lines_1 + lines_2, labels_1 + labels_2, loc="upper left")
+#
+# guardar_grafico("50_energia_anual_vs_preco.png")
+#
+# # =========================
+# # 51. DISTRIBUIÇÃO DO kWh POR kW INSTALADO
+# # =========================
+#
+# plt.figure(figsize=(10, 6))
+# sns.histplot(
+#     energia["kWh por kW instalado"],
+#     bins=50,
+#     kde=True
+# )
+# plt.title("Distribuição da energia injetada por kW instalado")
+# plt.xlabel("kWh por kW instalado")
+# plt.ylabel("Frequência")
+# guardar_grafico("51_distribuicao_kwh_por_kw.png")
+#
+# # =========================
+# # 52. BOXPLOT kWh/kW POR DISTRITO
+# # =========================
+#
+# plt.figure(figsize=(14, 7))
+# sns.boxplot(
+#     data=energia,
+#     x="Distrito",
+#     y="kWh por kW instalado"
+# )
+#
+# plt.xticks(rotation=45)
+# plt.title("Distribuição da eficiência (kWh/kW) por distrito")
+# plt.xlabel("Distrito")
+# plt.ylabel("kWh por kW instalado")
+# guardar_grafico("52_boxplot_kwh_kw_por_distrito.png")
+#
+# # =========================
+# # 53. POTÊNCIA VS EXCEDENTE
+# # =========================
+#
+# plt.figure(figsize=(12, 7))
+# sns.scatterplot(
+#     data=energia,
+#     x="Potência Instalada (kW)",
+#     y="kWh por kW instalado",
+#     alpha=0.4
+# )
+#
+# plt.title("Relação entre potência instalada e excedente relativo")
+# plt.xlabel("Potência instalada (kW)")
+# plt.ylabel("kWh injetados por kW instalado")
+# guardar_grafico("53_potencia_vs_excedente.png")
+#
+# # =========================
+# # 54. TOP 15 CONCELHOS POR EXCEDENTE
+# # =========================
+# excedente_concelho = (
+#     energia
+#     .groupby("Concelho")
+#     .agg({
+#         "Energia Injetada (kWh)": "sum",
+#         "Potência Instalada (kW)": "sum"
+#     })
+#     .reset_index()
+# )
+#
+# excedente_concelho["Excedente por kW"] = (
+#     excedente_concelho["Energia Injetada (kWh)"]
+#     / excedente_concelho["Potência Instalada (kW)"]
+# )
+#
+# top_concelhos_excedente = (
+#     excedente_concelho
+#     .sort_values("Excedente por kW", ascending=False)
+#     .head(15)
+# )
+#
+# plt.figure(figsize=(12, 7))
+# sns.barplot(
+#     data=top_concelhos_excedente,
+#     x="Excedente por kW",
+#     y="Concelho"
+# )
+#
+# plt.title("Top 15 concelhos com maior excedente relativo de energia")
+# plt.xlabel("kWh injetados por kW instalado")
+# plt.ylabel("Concelho")
+# guardar_grafico("54_top_concelhos_excedente.png")
+#
+# # =========================
+# # 55. EVOLUÇÃO DO EXCEDENTE NOS TOP 5 DISTRITOS
+# # =========================
+#
+# top5_distritos = (
+#     energia
+#     .groupby("Distrito")["Energia Injetada (kWh)"]
+#     .sum()
+#     .sort_values(ascending=False)
+#     .head(5)
+#     .index
+# )
+#
+# eficiencia_top5 = (
+#     energia[energia["Distrito"].isin(top5_distritos)]
+#     .groupby(["Data", "Distrito"])
+#     .agg({
+#         "Energia Injetada (kWh)": "sum",
+#         "Potência Instalada (kW)": "sum"
+#     })
+#     .reset_index()
+# )
+#
+# eficiencia_top5["kWh por kW instalado"] = (
+#     eficiencia_top5["Energia Injetada (kWh)"]
+#     / eficiencia_top5["Potência Instalada (kW)"]
+# )
+#
+# plt.figure(figsize=(14, 7))
+# sns.lineplot(
+#     data=eficiencia_top5,
+#     x="Data",
+#     y="kWh por kW instalado",
+#     hue="Distrito",
+#     marker="o"
+# )
+#
+# plt.title("Evolução da eficiência energética nos principais distritos")
+# plt.xlabel("Data")
+# plt.ylabel("kWh por kW instalado")
+# plt.legend(title="Distrito", bbox_to_anchor=(1.05, 1), loc="upper left")
+# guardar_grafico("55_evolucao_eficiencia_top5.png")
 
-# =========================
-# 31. EVOLUÇÃO DA POTÊNCIA POR ESCALÃO + PREÇO USD/kW
-# =========================
 
-potencia_escalao_tempo = (
-    upacs
-    .groupby(["Data", "Escalão de potência instalada (kW)"])["Potência Total Instalada UPAC (kW)"]
-    .sum()
-    .reset_index()
-)
-
-# Preço anual como data real
-preco_anual = precos_long.copy()
-preco_anual["Data"] = pd.to_datetime(preco_anual["Ano"].astype(str) + "-01-01")
-
-# Cortar preço para começar apenas a partir do início dos dados das UPACs
-data_inicio = potencia_escalao_tempo["Data"].min()
-data_fim = potencia_escalao_tempo["Data"].max()
-
-preco_anual = preco_anual[
-    (preco_anual["Data"] >= data_inicio) &
-    (preco_anual["Data"] <= data_fim)
-].copy()
-
-fig, ax1 = plt.subplots(figsize=(14, 7))
-
-# Usar exatamente a lógica de cores do seaborn como no gráfico 14
-sns.lineplot(
-    data=potencia_escalao_tempo,
-    x="Data",
-    y="Potência Total Instalada UPAC (kW)",
-    hue="Escalão de potência instalada (kW)",
-    marker="o",
-    ax=ax1
-)
-
-ax1.set_xlabel("Trimestre")
-ax1.set_ylabel("Potência total instalada (kW)")
-ax1.legend(title="Escalão", bbox_to_anchor=(1.08, 1), loc="upper left")
-
-# Eixo direito para o preço
-ax2 = ax1.twinx()
-
-ax2.plot(
-    preco_anual["Data"],
-    preco_anual["Preco_USD_kW"],
-    marker="o",
-    linestyle="--",
-    linewidth=3,
-    color="black",
-    label="Preço USD/kW"
-)
-
-ax2.set_ylabel("Preço USD/kW", color="black")
-ax2.tick_params(axis="y", labelcolor="black")
-ax2.legend(loc="upper right")
-
-plt.title("Evolução da potência instalada por escalão de potência e preço USD/kW")
-
-guardar_grafico("31_potencia_por_escalao_vs_preco_corrigido.png")
 
 print("Gráficos criados com sucesso em:", OUTPUT_DIR)
