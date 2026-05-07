@@ -827,12 +827,29 @@ def make_choropleth(data, variable, title, range_col, figname):
         color_continuous_scale="YlGn",
         title=title,
         hover_name="Distrito",
-        width=1200,
-        height=1000,
         range_color=range_col
     )
-    fig.update_layout(width=2000, height=1000, font=dict(size=30))
-    fig.update_geos(fitbounds="locations", visible=False)
+    fig.update_layout(
+        width=500,
+        height=500,
+        margin={"r": 0, "t": 50, "l": 0, "b": 0},
+        title=dict(
+            x=0.5,
+            y=0.88
+        ),
+        coloraxis_colorbar=dict(
+            x=0.85,
+            thickness=15,
+            len=0.7
+        )
+    )
+    fig.update_geos(
+        projection_type="transverse mercator",
+        fitbounds=False,
+        visible=False,
+        lataxis_range=[35.8, 43.2],
+        lonaxis_range=[-10.7, -5.0]
+    )
     fig.write_image(figname, scale=1)
     return
 
