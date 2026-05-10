@@ -1029,16 +1029,35 @@ energia["kWh por kW instalado"] = (
 #     * 100
 # )
 #
-# plt.figure(figsize=(12, 6))
+# potencia_distrito_ultimo["Posição"] = range(1, len(potencia_distrito_ultimo) + 1)
+#
+# plt.figure(figsize=(14, 7))
+#
 # sns.lineplot(
 #     data=potencia_distrito_ultimo,
-#     x=range(1, len(potencia_distrito_ultimo) + 1),
+#     x="Posição",
 #     y="Percentagem acumulada",
 #     marker="o"
 # )
+#
+# # Adicionar nomes dos distritos
+# for _, row in potencia_distrito_ultimo.iterrows():
+#     plt.text(
+#         row["Posição"] + 0.1,
+#         row["Percentagem acumulada"],
+#         row["Distrito"],
+#         fontsize=8
+#     )
+#
+# # Escala de 2 em 2
+# plt.xticks(range(1, len(potencia_distrito_ultimo) + 1, 1))
+#
 # plt.title("Concentração acumulada da potência instalada por distrito")
 # plt.xlabel("Distritos ordenados por potência instalada")
 # plt.ylabel("Percentagem acumulada da potência (%)")
+# plt.ylim(0, 100)
+# plt.yticks(range(0, 101, 10))
+#
 # guardar_grafico("28_concentracao_acumulada_potencia_distrito.png")
 #
 #
@@ -1061,16 +1080,35 @@ energia["kWh por kW instalado"] = (
 #     * 100
 # )
 #
-# plt.figure(figsize=(12, 6))
+# instalacoes_distrito_ultimo["Posição"] = range(1, len(instalacoes_distrito_ultimo) + 1)
+#
+# plt.figure(figsize=(14, 7))
+#
 # sns.lineplot(
 #     data=instalacoes_distrito_ultimo,
-#     x=range(1, len(instalacoes_distrito_ultimo) + 1),
+#     x="Posição",
 #     y="Percentagem acumulada",
 #     marker="o"
 # )
+#
+# # Adicionar nomes dos distritos
+# for _, row in instalacoes_distrito_ultimo.iterrows():
+#     plt.text(
+#         row["Posição"] + 0.1,
+#         row["Percentagem acumulada"],
+#         row["Distrito"],
+#         fontsize=8
+#     )
+#
+# # Escala de 2 em 2
+# plt.xticks(range(1, len(instalacoes_distrito_ultimo) + 1, 1))
+#
 # plt.title("Concentração acumulada das instalações por distrito")
 # plt.xlabel("Distritos ordenados por número de instalações")
 # plt.ylabel("Percentagem acumulada das instalações (%)")
+# plt.ylim(0, 100)
+# plt.yticks(range(0, 101, 10))
+#
 # guardar_grafico("29_concentracao_acumulada_instalacoes_distrito.png")
 #
 #
@@ -1670,16 +1708,40 @@ energia["kWh por kW instalado"] = (
 #     * 100
 # )
 #
-# plt.figure(figsize=(12, 6))
+# energia_distrito_acumulada["Posição"] = range(
+#     1,
+#     len(energia_distrito_acumulada) + 1
+# )
+#
+# plt.figure(figsize=(14, 7))
+#
 # sns.lineplot(
 #     data=energia_distrito_acumulada,
-#     x=range(1, len(energia_distrito_acumulada) + 1),
+#     x="Posição",
 #     y="Percentagem acumulada",
 #     marker="o"
 # )
+#
+# # Adicionar nomes dos distritos
+# for _, row in energia_distrito_acumulada.iterrows():
+#     plt.text(
+#         row["Posição"] + 0.1,
+#         row["Percentagem acumulada"],
+#         row["Distrito"],
+#         fontsize=8
+#     )
+#
+# # Escala X de 1 em 1
+# plt.xticks(range(1, len(energia_distrito_acumulada) + 1, 1))
+#
+# # Escala Y de 0 a 100 de 10 em 10
+# plt.ylim(0, 100)
+# plt.yticks(range(0, 101, 10))
+#
 # plt.title("Concentração acumulada da energia injetada por distrito")
 # plt.xlabel("Distritos ordenados por energia injetada")
 # plt.ylabel("Percentagem acumulada da energia (%)")
+#
 # guardar_grafico("49_concentracao_acumulada_energia_distrito.png")
 #
 #
@@ -1861,6 +1923,623 @@ energia["kWh por kW instalado"] = (
 # plt.ylabel("kWh por kW instalado")
 # plt.legend(title="Distrito", bbox_to_anchor=(1.05, 1), loc="upper left")
 # guardar_grafico("55_evolucao_eficiencia_top5.png")
+#
+# # =========================
+# # LIMPEZA AUXILIAR PARA GRÁFICOS 56–70
+# # =========================
+#
+# energia_limpa = energia.dropna(subset=["Distrito", "Concelho"]).copy()
+#
+# # Evitar divisões por zero
+# energia_limpa = energia_limpa[
+#     (energia_limpa["Potência Instalada (kW)"] > 0) &
+#     (energia_limpa["Número de Instalações"] > 0)
+# ].copy()
+#
+#
+# # =========================
+# # 56. CURVA DE LORENZ DA ENERGIA INJETADA POR DISTRITO
+# # =========================
+#
+# lorenz_energia = (
+#     energia_limpa
+#     .groupby("Distrito")["Energia Injetada (kWh)"]
+#     .sum()
+#     .sort_values()
+#     .reset_index()
+# )
+#
+# lorenz_energia["Percentagem acumulada energia"] = (
+#     lorenz_energia["Energia Injetada (kWh)"].cumsum()
+#     / lorenz_energia["Energia Injetada (kWh)"].sum()
+#     * 100
+# )
+#
+# lorenz_energia["Percentagem acumulada distritos"] = (
+#     (range(1, len(lorenz_energia) + 1))
+# )
+# lorenz_energia["Percentagem acumulada distritos"] = (
+#     lorenz_energia["Percentagem acumulada distritos"]
+#     / len(lorenz_energia)
+#     * 100
+# )
+#
+# plt.figure(figsize=(8, 8))
+#
+# plt.plot(
+#     lorenz_energia["Percentagem acumulada distritos"],
+#     lorenz_energia["Percentagem acumulada energia"],
+#     marker="o",
+#     label="Energia injetada"
+# )
+#
+# plt.plot(
+#     [0, 100],
+#     [0, 100],
+#     linestyle="--",
+#     color="black",
+#     label="Distribuição igualitária"
+# )
+#
+# plt.title("Curva de Lorenz da energia injetada por distrito")
+# plt.xlabel("Percentagem acumulada de distritos (%)")
+# plt.ylabel("Percentagem acumulada da energia injetada (%)")
+# plt.legend()
+# plt.grid(True)
+#
+# guardar_grafico("56_lorenz_energia_injetada_distrito.png")
+#
+#
+# # =========================
+# # 57. DISTRITOS COM MENOR EXCEDENTE RELATIVO POR kW
+# # =========================
+#
+# excedente_distrito = (
+#     energia_limpa
+#     .groupby("Distrito")
+#     .agg({
+#         "Energia Injetada (kWh)": "sum",
+#         "Potência Instalada (kW)": "sum"
+#     })
+#     .reset_index()
+# )
+#
+# excedente_distrito["Excedente por kW"] = (
+#     excedente_distrito["Energia Injetada (kWh)"]
+#     / excedente_distrito["Potência Instalada (kW)"]
+# )
+#
+# bottom_excedente_distrito = (
+#     excedente_distrito
+#     .sort_values("Excedente por kW", ascending=True)
+#     .head(10)
+# )
+#
+# plt.figure(figsize=(12, 6))
+#
+# sns.barplot(
+#     data=bottom_excedente_distrito,
+#     x="Excedente por kW",
+#     y="Distrito"
+# )
+#
+# plt.title("10 distritos com menor excedente relativo por kW instalado")
+# plt.xlabel("kWh injetados por kW instalado")
+# plt.ylabel("Distrito")
+#
+# guardar_grafico("57_distritos_menor_excedente_kw.png")
+#
+#
+# # =========================
+# # 58. HEATMAP ANO × MÊS DA ENERGIA INJETADA
+# # =========================
+#
+# heatmap_ano_mes = (
+#     energia_limpa
+#     .groupby(["Ano", "Mês"])["Energia Injetada (kWh)"]
+#     .sum()
+#     .reset_index()
+# )
+#
+# heatmap_ano_mes_pivot = heatmap_ano_mes.pivot(
+#     index="Ano",
+#     columns="Mês",
+#     values="Energia Injetada (kWh)"
+# )
+#
+# plt.figure(figsize=(12, 5))
+#
+# sns.heatmap(
+#     heatmap_ano_mes_pivot,
+#     cmap="YlOrRd",
+#     linewidths=0.5,
+#     annot=False
+# )
+#
+# plt.title("Heatmap da energia injetada por ano e mês")
+# plt.xlabel("Mês")
+# plt.ylabel("Ano")
+#
+# guardar_grafico("58_heatmap_ano_mes_energia_injetada.png")
+#
+#
+# # =========================
+# # 59. HEATMAP DISTRITO × MÊS DO EXCEDENTE POR kW
+# # =========================
+#
+# excedente_mes_distrito = (
+#     energia_limpa
+#     .groupby(["Distrito", "Mês"])
+#     .agg({
+#         "Energia Injetada (kWh)": "sum",
+#         "Potência Instalada (kW)": "sum"
+#     })
+#     .reset_index()
+# )
+#
+# excedente_mes_distrito["Excedente por kW"] = (
+#     excedente_mes_distrito["Energia Injetada (kWh)"]
+#     / excedente_mes_distrito["Potência Instalada (kW)"]
+# )
+#
+# heatmap_excedente_pivot = excedente_mes_distrito.pivot(
+#     index="Distrito",
+#     columns="Mês",
+#     values="Excedente por kW"
+# )
+#
+# plt.figure(figsize=(14, 8))
+#
+# sns.heatmap(
+#     heatmap_excedente_pivot,
+#     cmap="YlOrRd",
+#     linewidths=0.5
+# )
+#
+# plt.title("Heatmap do excedente relativo por distrito e mês")
+# plt.xlabel("Mês")
+# plt.ylabel("Distrito")
+#
+# guardar_grafico("59_heatmap_excedente_kw_distrito_mes.png")
+#
+#
+# # =========================
+# # 60. VARIAÇÃO MENSAL DA ENERGIA INJETADA (%)
+# # =========================
+#
+# variacao_mensal_energia = (
+#     energia_limpa
+#     .groupby("Data")["Energia Injetada (kWh)"]
+#     .sum()
+#     .reset_index()
+#     .sort_values("Data")
+# )
+#
+# variacao_mensal_energia["Variação mensal (%)"] = (
+#     variacao_mensal_energia["Energia Injetada (kWh)"]
+#     .pct_change()
+#     * 100
+# )
+#
+# plt.figure(figsize=(14, 6))
+#
+# sns.barplot(
+#     data=variacao_mensal_energia.dropna(),
+#     x="Data",
+#     y="Variação mensal (%)"
+# )
+#
+# plt.title("Variação mensal da energia injetada")
+# plt.xlabel("Data")
+# plt.ylabel("Variação mensal (%)")
+# plt.xticks(rotation=45)
+#
+# guardar_grafico("60_variacao_mensal_energia_injetada.png")
+#
+#
+# # =========================
+# # 61. RANKING DINÂMICO DOS DISTRITOS POR ENERGIA INJETADA
+# # =========================
+#
+# top8_distritos_energia = (
+#     energia_limpa
+#     .groupby("Distrito")["Energia Injetada (kWh)"]
+#     .sum()
+#     .sort_values(ascending=False)
+#     .head(8)
+#     .index
+# )
+#
+# ranking_distritos = (
+#     energia_limpa[energia_limpa["Distrito"].isin(top8_distritos_energia)]
+#     .groupby(["Data", "Distrito"])["Energia Injetada (kWh)"]
+#     .sum()
+#     .reset_index()
+# )
+#
+# ranking_distritos["Ranking"] = (
+#     ranking_distritos
+#     .groupby("Data")["Energia Injetada (kWh)"]
+#     .rank(ascending=False, method="dense")
+# )
+#
+# plt.figure(figsize=(14, 7))
+#
+# sns.lineplot(
+#     data=ranking_distritos,
+#     x="Data",
+#     y="Ranking",
+#     hue="Distrito",
+#     marker="o"
+# )
+#
+# plt.gca().invert_yaxis()
+# plt.title("Ranking mensal dos principais distritos por energia injetada")
+# plt.xlabel("Data")
+# plt.ylabel("Ranking mensal")
+# plt.legend(title="Distrito", bbox_to_anchor=(1.05, 1), loc="upper left")
+#
+# guardar_grafico("61_ranking_dinamico_distritos_energia.png")
+#
+#
+# # =========================
+# # 62. EVOLUÇÃO DA DISTRIBUIÇÃO DOS ESCALÕES DE POTÊNCIA
+# # =========================
+#
+# escalao_tempo = (
+#     upacs
+#     .groupby(["Data", "Escalão de potência instalada (kW)"])["Número de instalacões"]
+#     .sum()
+#     .reset_index()
+# )
+#
+# escalao_pivot = escalao_tempo.pivot(
+#     index="Data",
+#     columns="Escalão de potência instalada (kW)",
+#     values="Número de instalacões"
+# ).fillna(0)
+#
+# escalao_percent = escalao_pivot.div(escalao_pivot.sum(axis=1), axis=0) * 100
+#
+# plt.figure(figsize=(14, 7))
+#
+# escalao_percent.plot.area(
+#     figsize=(14, 7),
+#     alpha=0.8
+# )
+#
+# plt.title("Evolução da distribuição percentual das instalações por escalão")
+# plt.xlabel("Data")
+# plt.ylabel("Percentagem das instalações (%)")
+# plt.legend(title="Escalão", bbox_to_anchor=(1.05, 1), loc="upper left")
+#
+# guardar_grafico("62_area_percentual_instalacoes_por_escalao.png")
+#
+#
+# # =========================
+# # 63. PREÇO USD/kW VS EXCEDENTE RELATIVO ANUAL
+# # =========================
+#
+# excedente_anual = (
+#     energia_limpa
+#     .groupby("Ano")
+#     .agg({
+#         "Energia Injetada (kWh)": "sum",
+#         "Potência Instalada (kW)": "sum"
+#     })
+#     .reset_index()
+# )
+#
+# excedente_anual["Excedente por kW"] = (
+#     excedente_anual["Energia Injetada (kWh)"]
+#     / excedente_anual["Potência Instalada (kW)"]
+# )
+#
+# excedente_preco_anual = excedente_anual.merge(
+#     precos_long,
+#     on="Ano",
+#     how="inner"
+# )
+#
+# plt.figure(figsize=(10, 6))
+#
+# sns.scatterplot(
+#     data=excedente_preco_anual,
+#     x="Preco_USD_kW",
+#     y="Excedente por kW",
+#     s=140
+# )
+#
+# for _, row in excedente_preco_anual.iterrows():
+#     plt.text(
+#         row["Preco_USD_kW"],
+#         row["Excedente por kW"],
+#         int(row["Ano"]),
+#         fontsize=9
+#     )
+#
+# plt.title("Relação entre preço USD/kW e excedente relativo anual")
+# plt.xlabel("Preço USD/kW")
+# plt.ylabel("kWh injetados por kW instalado")
+#
+# guardar_grafico("63_preco_vs_excedente_relativo_anual.png")
+#
+#
+# # =========================
+# # 64. CURVA ACUMULADA TEMPORAL DA ENERGIA INJETADA
+# # =========================
+#
+# energia_acumulada_tempo = (
+#     energia_limpa
+#     .groupby("Data")["Energia Injetada (kWh)"]
+#     .sum()
+#     .reset_index()
+#     .sort_values("Data")
+# )
+#
+# energia_acumulada_tempo["Energia acumulada (kWh)"] = (
+#     energia_acumulada_tempo["Energia Injetada (kWh)"].cumsum()
+# )
+#
+# energia_acumulada_tempo["Percentagem acumulada (%)"] = (
+#     energia_acumulada_tempo["Energia acumulada (kWh)"]
+#     / energia_acumulada_tempo["Energia Injetada (kWh)"].sum()
+#     * 100
+# )
+#
+# plt.figure(figsize=(14, 6))
+#
+# sns.lineplot(
+#     data=energia_acumulada_tempo,
+#     x="Data",
+#     y="Percentagem acumulada (%)",
+#     marker="o"
+# )
+#
+# plt.title("Curva acumulada temporal da energia injetada")
+# plt.xlabel("Data")
+# plt.ylabel("Percentagem acumulada da energia injetada (%)")
+# plt.ylim(0, 100)
+# plt.yticks(range(0, 101, 10))
+#
+# guardar_grafico("64_curva_acumulada_temporal_energia.png")
+#
+#
+# # =========================
+# # 65. DENSIDADE DO EXCEDENTE RELATIVO NOS TOP 5 DISTRITOS
+# # =========================
+#
+# top5_excedente_distritos = (
+#     energia_limpa
+#     .groupby("Distrito")["Energia Injetada (kWh)"]
+#     .sum()
+#     .sort_values(ascending=False)
+#     .head(5)
+#     .index
+# )
+#
+# energia_top5_kde = energia_limpa[
+#     energia_limpa["Distrito"].isin(top5_excedente_distritos)
+# ].copy()
+#
+# plt.figure(figsize=(12, 6))
+#
+# for distrito in top5_excedente_distritos:
+#     subset = energia_top5_kde[
+#         energia_top5_kde["Distrito"] == distrito
+#     ]
+#
+#     sns.kdeplot(
+#         data=subset,
+#         x="kWh por kW instalado",
+#         fill=False,
+#         label=distrito
+#     )
+#
+# plt.title("Distribuição do excedente relativo nos 5 distritos com mais energia injetada")
+# plt.xlabel("kWh injetados por kW instalado")
+# plt.ylabel("Densidade")
+# plt.legend(title="Distrito", bbox_to_anchor=(1.05, 1), loc="upper left")
+#
+# guardar_grafico("65_kde_excedente_top5_distritos.png")
+#
+#
+# # =========================
+# # 66. DISTRIBUIÇÃO LOGARÍTMICA DA ENERGIA INJETADA
+# # =========================
+#
+# energia_positiva = energia_limpa[
+#     energia_limpa["Energia Injetada (kWh)"] > 0
+# ].copy()
+#
+# plt.figure(figsize=(10, 6))
+#
+# sns.histplot(
+#     data=energia_positiva,
+#     x="Energia Injetada (kWh)",
+#     bins=60,
+#     log_scale=True
+# )
+#
+# plt.title("Distribuição logarítmica da energia injetada")
+# plt.xlabel("Energia injetada (kWh) - escala logarítmica")
+# plt.ylabel("Frequência")
+#
+# guardar_grafico("66_distribuicao_log_energia_injetada.png")
+#
+#
+# # =========================
+# # 67. POTÊNCIA VS EXCEDENTE RELATIVO COM TAMANHO DAS INSTALAÇÕES
+# # =========================
+#
+# scatter_distrito_excedente = (
+#     energia_limpa
+#     .groupby("Distrito")
+#     .agg({
+#         "Potência Instalada (kW)": "sum",
+#         "Energia Injetada (kWh)": "sum",
+#         "Número de Instalações": "sum"
+#     })
+#     .reset_index()
+# )
+#
+# scatter_distrito_excedente["Excedente por kW"] = (
+#     scatter_distrito_excedente["Energia Injetada (kWh)"]
+#     / scatter_distrito_excedente["Potência Instalada (kW)"]
+# )
+#
+# plt.figure(figsize=(12, 7))
+#
+# sns.scatterplot(
+#     data=scatter_distrito_excedente,
+#     x="Potência Instalada (kW)",
+#     y="Excedente por kW",
+#     size="Número de Instalações",
+#     sizes=(80, 800),
+#     alpha=0.7,
+#     legend=True
+# )
+#
+# for _, row in scatter_distrito_excedente.iterrows():
+#     plt.text(
+#         row["Potência Instalada (kW)"],
+#         row["Excedente por kW"],
+#         row["Distrito"],
+#         fontsize=8
+#     )
+#
+# plt.title("Potência instalada vs excedente relativo por distrito")
+# plt.xlabel("Potência instalada (kW)")
+# plt.ylabel("kWh injetados por kW instalado")
+#
+# guardar_grafico("67_potencia_vs_excedente_size_instalacoes.png")
+#
+#
+# # =========================
+# # 68. EVOLUÇÃO DA PARTICIPAÇÃO DOS TOP 5 DISTRITOS NA ENERGIA NACIONAL
+# # =========================
+#
+# top5_participacao = (
+#     energia_limpa
+#     .groupby("Distrito")["Energia Injetada (kWh)"]
+#     .sum()
+#     .sort_values(ascending=False)
+#     .head(5)
+#     .index
+# )
+#
+# energia_data_total = (
+#     energia_limpa
+#     .groupby("Data")["Energia Injetada (kWh)"]
+#     .sum()
+#     .reset_index()
+#     .rename(columns={"Energia Injetada (kWh)": "Energia nacional"})
+# )
+#
+# energia_top5_data = (
+#     energia_limpa[energia_limpa["Distrito"].isin(top5_participacao)]
+#     .groupby(["Data", "Distrito"])["Energia Injetada (kWh)"]
+#     .sum()
+#     .reset_index()
+# )
+#
+# energia_top5_data = energia_top5_data.merge(
+#     energia_data_total,
+#     on="Data",
+#     how="left"
+# )
+#
+# energia_top5_data["Participação nacional (%)"] = (
+#     energia_top5_data["Energia Injetada (kWh)"]
+#     / energia_top5_data["Energia nacional"]
+#     * 100
+# )
+#
+# plt.figure(figsize=(14, 7))
+#
+# sns.lineplot(
+#     data=energia_top5_data,
+#     x="Data",
+#     y="Participação nacional (%)",
+#     hue="Distrito",
+#     marker="o"
+# )
+#
+# plt.title("Participação dos principais distritos na energia injetada nacional")
+# plt.xlabel("Data")
+# plt.ylabel("Participação nacional (%)")
+# plt.legend(title="Distrito", bbox_to_anchor=(1.05, 1), loc="upper left")
+#
+# guardar_grafico("68_participacao_top5_distritos_energia.png")
+#
+#
+# # =========================
+# # 69. EVOLUÇÃO DA ENERGIA INJETADA POR NÍVEL DE TENSÃO
+# # =========================
+#
+# energia_tensao_tempo = (
+#     energia_limpa
+#     .groupby(["Data", "Nível de Tensão"])["Energia Injetada (kWh)"]
+#     .sum()
+#     .reset_index()
+# )
+#
+# energia_tensao_pivot = energia_tensao_tempo.pivot(
+#     index="Data",
+#     columns="Nível de Tensão",
+#     values="Energia Injetada (kWh)"
+# ).fillna(0)
+#
+# energia_tensao_percent = energia_tensao_pivot.div(
+#     energia_tensao_pivot.sum(axis=1),
+#     axis=0
+# ) * 100
+#
+# plt.figure(figsize=(14, 7))
+#
+# energia_tensao_percent.plot.area(
+#     figsize=(14, 7),
+#     alpha=0.8
+# )
+#
+# plt.title("Evolução percentual da energia injetada por nível de tensão")
+# plt.xlabel("Data")
+# plt.ylabel("Percentagem da energia injetada (%)")
+# plt.legend(title="Nível de tensão", bbox_to_anchor=(1.05, 1), loc="upper left")
+#
+# guardar_grafico("69_area_percentual_energia_por_nivel_tensao.png")
+#
+#
+# # =========================
+# # 70. MATRIZ DE CORRELAÇÃO DAS VARIÁVEIS NUMÉRICAS
+# # =========================
+#
+# corr_vars = energia_limpa[
+#     [
+#         "Potência Instalada (kW)",
+#         "Número de Instalações",
+#         "Energia Injetada (kWh)",
+#         "kWh por instalação",
+#         "kWh por kW instalado"
+#     ]
+# ].copy()
+#
+# corr_matrix = corr_vars.corr()
+#
+# plt.figure(figsize=(9, 7))
+#
+# sns.heatmap(
+#     corr_matrix,
+#     annot=True,
+#     cmap="coolwarm",
+#     vmin=-1,
+#     vmax=1,
+#     linewidths=0.5
+# )
+#
+# plt.title("Matriz de correlação das variáveis da energia injetada")
+#
+# guardar_grafico("70_matriz_correlacao_energia.png")
 
 
 
