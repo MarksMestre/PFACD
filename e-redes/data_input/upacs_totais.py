@@ -839,7 +839,7 @@ def make_choropleth(data, variable, title, range_col, figname):
     )
     fig.update_layout(
         width=500,
-        height=500,
+        height=800,
         margin={"r": 0, "t": 50, "l": 0, "b": 0},
         title=dict(
             x=0.5,
@@ -848,7 +848,13 @@ def make_choropleth(data, variable, title, range_col, figname):
         coloraxis_colorbar=dict(
             x=0.85,
             thickness=15,
-            len=0.7
+            len=0.7,
+            # Add the title configuration here
+            title=dict(
+                text=variable,  # Or whatever text you want for the colorbar
+                side="right",  # Options: "top", "bottom", "left", "right"
+                font=dict(size=12)  # Optional: tweak size to fit nicely
+            )
         )
     )
     fig.update_geos(
@@ -902,7 +908,8 @@ df_potencial_real["kWh_per_year"] = df_potencial_real["TWh_per_year"] * 10**9
 df_potencial_real["Percentagem conseguida"] =  df_potencial_real["Estimativa(kWh)_DC"]/ df_potencial_real["kWh_per_year"] * 100
 print("National percentage attained: ", df_potencial_real["Estimativa(kWh)_DC"].sum() / df_potencial_real["kWh_per_year"].sum() * 100,"%")
 print(df_potencial_real["Estimativa(kWh)_DC"].sum()/10**9)
-print(df_potencial_real["Potência Total Instalada UPAC (kW)"].sum() / 10**6)
+print(df_injecao["Potência Total Instalada UPAC (kW)"].sum() / 10**6)
+print(df_injecao["injecao em 2024 (kWh)"].sum() / df_injecao["Estimativa(kWh)_AC"].sum() * 100)
 
 # print(df[df["Trimestre"] == "2025T4"]["Número de instalacões"].sum())
 # print(df[df["Trimestre"] == "2025T4"]["Potência Total Instalada UPAC (kW)"].sum())
