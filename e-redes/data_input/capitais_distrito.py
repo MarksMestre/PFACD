@@ -6,7 +6,7 @@ import plotly.express as px
 
 sheets = ["RGlobal_diarios"] #, "Tminima_diarios", "Tmaxima_diarios", "Precipitacao_diarios"]
 df1 = pd.read_excel('CapitaisDistrito_Valores_dia_Tn_Tx_Prec_RG.xlsx', sheet_name=sheets)
-distritos = ['Évora', 'Portalegre', 'Viana do Castelo', 'Castelo Branco', 'Guarda', 'Bragança', 'Vila Real', 'Braga', 'Faro', 'Beja', 'Setúbal', 'Lisboa', 'Santarém', 'Leiria', 'Coimbra', 'Aveiro', 'Porto', 'Madeira', 'Azores', 'Viseu']
+distritos = ['Évora', 'Portalegre', 'Viana do Castelo', 'Castelo Branco', 'Guarda', 'Bragança', 'Vila Real', 'Braga', 'Faro', 'Beja', 'Setúbal', 'Lisboa', 'Santarém', 'Leiria', 'Coimbra', 'Aveiro', 'Porto', 'Viseu']
 
 results_tracker = []
 
@@ -282,3 +282,27 @@ df_combined = pd.merge(
 
 print(df_combined.head())
 
+#GERAÇÃO DE VALORES DE RADIAÇÃO MEDANA ANUAL
+
+df_rad = df1["RGlobal_diarios"].copy()
+df_rad = df_rad.replace(-990, np.nan)
+
+
+distritos
+
+for col in distritos:
+    median_val = df_rad[col].median()
+    df_rad[col] = df_rad[col].fillna(median_val)
+
+total_sum = df_rad[distritos].sum()
+
+#Média anual(15 anos), conversão kJ para kWh
+yearly_avg_radiation = total_sum / 15 / 3600
+
+df_final_export = yearly_avg_radiation.reset_index()
+df_final_export.columns = ['Distrito', 'Radiation']
+
+df_final_export.to_csv("distrito_radiation_imputed.csv", index=False)
+
+print("Imputation and calculation complete. Preview:")
+print(df_final_export.head())

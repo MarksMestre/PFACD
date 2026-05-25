@@ -51,12 +51,11 @@ def manipulate_geojson_buildings(buildings_directory, solar_shape, solar_transfo
 
     if not os.path.exists("portugal_building_mask.tif"):
         if buildings_gdf.crs != "EPSG:4326":
-            print("Boze ako umrem mlad posalji me u raj, u paklu sam vec bio.")
             buildings_gdf = buildings_gdf.to_crs("EPSG:4326")
         #Esta linha simplesmente multiplica os píxeis por 10
-        fine_shape = (solar_shape[0] * 10, solar_shape[1] * 10)
+        fine_shape = (solar_shape[0] * 25, solar_shape[1] * 25)
         #esta linha mantém a origem do mapa, mas muda os steps de cada pixel para um décimo. como há 10x píxeis, fica 10/10==1 vezes o tamanho original
-        fine_transform = solar_transform * solar_transform.scale(1 / 10, 1 / 10)
+        fine_transform = solar_transform * solar_transform.scale(1 / 25, 1 / 25)
 
         #isto cria o mapa rasterizado com píxeis mais pequenos
         fine_mask = features.rasterize(
@@ -69,7 +68,7 @@ def manipulate_geojson_buildings(buildings_directory, solar_shape, solar_transfo
 
         fractional_mask = cv2.resize(#isto vai agregar a máscara, cada 10x10 píxeis tornam-se 1
             fine_mask.astype('float32'),#conversão de binário para float
-            (solar_shape[1], solar_shape[0]),#Mudança para a escala da radiação
+            (solar_shape[1], solar_shape[0]),#Mudança para a escala do mapa da radiação
             interpolation=cv2.INTER_AREA#isto é a parte que especifica que estamos a fazer a média para cada píxel, em vez de a maioria
         )
         fractional_mask = np.nan_to_num(fractional_mask, nan=0.0)
@@ -97,6 +96,30 @@ def manipulate_geojson_buildings(buildings_directory, solar_shape, solar_transfo
     fractional_mask = np.nan_to_num(fractional_mask, nan=0.0)
     print("Completed building mask")
 
+    non_numeric_cols = buildings_gdf.select_dtypes(exclude=[np.number, 'geometry']).columns
+    print("--- Non-Numeric Columns and Unique Values ---")
+
+    #exploração básica
+    for col in non_numeric_cols:
+        print(f"\nColumn: {col}")
+        try:
+            unique_vals = buildings_gdf[col].unique()
+            print(f"Number of unique values: {len(unique_vals)}")
+            print(f"Sample values: {unique_vals[:10]}")
+        except TypeError:
+            print("Status: Contains unhashable nested data (ndarray/dict/list).")
+            sample = buildings_gdf[col].iloc[0]
+            print(f"Data type in column: {type(sample)}")
+
+
+    print(buildings_gdf["is_underground"].value_counts(dropna=False))
+    print(buildings_gdf["roof_shape"].value_counts(dropna=False))
+    buildings_gdf = buildings_gdf[buildings_gdf["is_underground"] == False]
+    buildings_gdf = buildings_gdf[buildings_gdf["roof_material"] != "glass"]
+    print(buildings_gdf["roof_shape"].value_counts(dropna=False))
+
+
+
 
     return buildings_gdf, fractional_mask
 
@@ -116,6 +139,7 @@ def calculate_and_save_potential(solar_array, building_mask, transform):
     # Element-wise multiplication: Solar (kWh/m2) * Mask (Fractional Area) * Usability
     # Result is in kWh per pixel
     potential_energy = solar_array * building_mask * USABLE_FRACTION * 800*800 / PANEL_SiZE * KWP
+    potential_energy = solar_array * building_mask * USABLE_FRACTION * 220000
     potential_energy = np.nan_to_num(potential_energy, nan=0.0)
     potential_energy = np.where(potential_energy < 1e-5, 0, potential_energy)
 
@@ -184,10 +208,10 @@ def make_plot_raster_under_vectors(fractional_mask, solar_transform, buildings_g
 
     plt.colorbar(im, ax=ax, label='Building Density (Fraction)')
     ax.set_title("Overlay: Building Vector Outlines on Fractional Mask")
-    plt.show()
+    plt.savefig("building_density_overlay.png")
 
 
-def plot_fractional_raster(mask_array, transform, solar_array, title):
+def plot_fractional_raster(mask_array, transform, solar_array, title, name):
     # 1. Clean data
     data = np.nan_to_num(mask_array, nan=0.0)
     data[data < 1e-5] = 0.0
@@ -218,7 +242,7 @@ def plot_fractional_raster(mask_array, transform, solar_array, title):
     ax.set_title(title)
     ax.set_axis_off()
 
-    plt.show()
+    plt.savefig(name)
 
 
 
@@ -226,11 +250,11 @@ def plot_fractional_raster(mask_array, transform, solar_array, title):
 
 # Call the functions
 
-#radiation_map()
-plot_fractional_raster(building_mask, solar_transform, solar_array, "buildings")
-plot_fractional_raster(potential_energy_array, solar_transform, solar_array, "Solar Potential: Land Only")
-#make_plot_raster_under_vectors(building_mask, solar_transform, buildings_gdf, [-9.18, -9.10], [38.70, 38.76])
-#make_plot_raster_under_vectors(building_mask, solar_transform, buildings_gdf, [-9.7, -6.0], [36.8, 42.2])
+radiation_map()
+plot_fractional_raster(building_mask, solar_transform, solar_array, "buildings", "buildings.png")
+plot_fractional_raster(potential_energy_array, solar_transform, solar_array, "Solar Potential: Land Only", "Solar potential.png")
+make_plot_raster_under_vectors(building_mask, solar_transform, buildings_gdf, [-9.18, -9.10], [38.70, 38.76])
+make_plot_raster_under_vectors(building_mask, solar_transform, buildings_gdf, [-9.7, -6.0], [36.8, 42.2])
 
 def sum_potential_by_district(potential_array, transform, districts_gdf):
     # 1. We must temporarily "wrap" the array as a raster dataset for masking
@@ -288,3 +312,65 @@ total_national_kwh = summary_results['total_kWh'].sum()
 print(f"Total National Potential: {total_national_kwh:.2e} kWh")
 print(f"Total National Potential: {total_national_kwh / 1e9:.2f} TWh")
 
+
+
+
+
+
+
+
+
+
+#Esta função é para estimar energia aproveitada por kW em cada distrito, em média. varia bastante mas deve ser melhor do que as estações do ipma pois é mais abrangente
+def average_radiation_by_district(solar_array, transform, districts_gdf):
+    from rasterio.io import MemoryFile
+
+    results = []
+    height, width = solar_array.shape
+
+    # isto prepara os metadados do nosso mapa temporário
+    meta = {
+        'driver': 'GTiff',
+        'height': height,
+        'width': width,
+        'count': 1,
+        'dtype': str(solar_array.dtype),
+        'crs': 'EPSG:4326',
+        'transform': transform,
+        'nodata': -9999
+    }
+    #aqui cria-se um ficheiro temporário que vai para a nossa RAM, e depois fazemos os calculos dentro do loop for
+    with MemoryFile() as memfile:
+        with memfile.open(**meta) as dataset:
+            dataset.write(solar_array, 1)
+
+            for _, row in districts_gdf.iterrows():
+                district_name = row['name']
+                geom = [row['geometry']]
+
+                try:
+                    #isto vai fazer um retangulo à volta do distrito, tudo o resto é -9999. Para os pixeis dentro do retangulo, apenas os válidos para o distrito sao contados, o resto é convertido para NA
+                    out_image, _ = mask(dataset, geom, crop=True, nodata=-9999)
+                    district_pixels = out_image[0].astype(float)
+                    district_pixels[district_pixels == -9999] = np.nan
+
+                    #Média do distrito, isto vai ser kWh/kWp médio, ou seja depois podemos pultiplicar o agregado dos painéis por isto para fazer estimativas
+                    avg_radiation = np.nanmean(district_pixels)
+
+                    results.append({'Distrito': district_name, 'Radiation': avg_radiation})
+
+                except ValueError:
+                    # Se um pixel nao esta no distrito torna-se np.nan par nao afetar os calculos. isto faz-nos perder pixeis mas a grande escala não importará muito, cada distrito tem muitos muitos pixeis
+                    results.append({'Distrito': district_name, 'Radiation': np.nan})
+
+    # dataframe resultante
+    result = pd.DataFrame(results).sort_values(by='Radiation', ascending=False)
+    result.to_csv("estimativas_rad_raster.csv")
+    return result
+
+
+
+avg_solar_df = average_radiation_by_district(solar_array, solar_transform, districts_gdf)
+
+print("--- Average Solar Radiation by District (kWh/m²/year) ---")
+print(avg_solar_df.to_string(index=False))
