@@ -2021,7 +2021,143 @@ energia_demo_200000 = energia_demo[
 # plt.xlabel("kWh por kW instalado")
 # plt.ylabel("Frequência")
 # guardar_grafico("51_distribuicao_kwh_por_kw.png")
+# # =========================
+# # 51A-51D. DISTRIBUIÇÃO DO kWh POR kW INSTALADO POR ESCALÃO MÉDIO DE POTÊNCIA
+# # =========================
 #
+# energia_escalao = energia[
+#     (energia["Potência Instalada (kW)"] > 0) &
+#     (energia["Número de Instalações"] > 0) &
+#     (energia["kWh por kW instalado"].notna())
+# ].copy()
+#
+# energia_escalao["Potência média por instalação (kW)"] = (
+#     energia_escalao["Potência Instalada (kW)"]
+#     / energia_escalao["Número de Instalações"]
+# )
+#
+# energia_escalao["Escalão médio de potência"] = pd.cut(
+#     energia_escalao["Potência média por instalação (kW)"],
+#     bins=[0, 4, 20.7, 30, 1000, float("inf")],
+#     labels=[
+#         "]0, 4]",
+#         "]4, 20.7]",
+#         "]20.7, 30]",
+#         "]30, 1000]",
+#         ">1000"
+#     ],
+#     include_lowest=True
+# )
+#
+# print("\nContagem por escalão médio de potência:")
+# print(energia_escalao["Escalão médio de potência"].value_counts(dropna=False))
+#
+# for escalao in energia_escalao["Escalão médio de potência"].dropna().unique():
+#     dados_escalao = energia_escalao[
+#         energia_escalao["Escalão médio de potência"] == escalao
+#     ]
+#
+#     plt.figure(figsize=(10, 6))
+#
+#     sns.histplot(
+#         dados_escalao["kWh por kW instalado"],
+#         bins=50,
+#         kde=True
+#     )
+#
+#     plt.title(f"Distribuição da energia injetada por kW instalado — escalão médio {escalao}")
+#     plt.xlabel("kWh injetados por kW instalado")
+#     plt.ylabel("Frequência")
+#
+#     nome_ficheiro = (
+#         f"51_distribuicao_kwh_por_kw_escalao_medio_{str(escalao)}"
+#         .replace("]", "")
+#         .replace("[", "")
+#         .replace(",", "")
+#         .replace(" ", "")
+#         .replace(".", "_")
+#         .replace(">", "maior_")
+#     )
+#
+#     guardar_grafico(f"{nome_ficheiro}.png")
+#
+# # =========================
+# # 51F. LINHAS KDE DO kWh POR kW INSTALADO — ESCALÕES SELECIONADOS
+# # =========================
+#
+# plt.figure(figsize=(12, 7))
+#
+# escalaoes_escolhidos = ["]0, 4]", "]30, 1000]"]
+#
+# cores = {
+#     "]0, 4]": "tab:blue",
+#     "]30, 1000]": "tab:red"
+# }
+#
+# for escalao in escalaoes_escolhidos:
+#     dados_escalao = energia_escalao[
+#         energia_escalao["Escalão médio de potência"] == escalao
+#     ]["kWh por kW instalado"].dropna()
+#
+#     if len(dados_escalao) == 0:
+#         continue
+#
+#     sns.kdeplot(
+#         dados_escalao,
+#         label=escalao,
+#         linewidth=2.5,
+#         color=cores[escalao]
+#     )
+#
+# plt.title("Distribuição da energia injetada por kW instalado por escalão médio")
+# plt.xlabel("kWh injetados por kW instalado")
+# plt.ylabel("Densidade")
+# plt.xlim(0, 120)
+# plt.ylim(0, 0.035)
+# plt.legend(title="Escalão médio")
+# guardar_grafico("51_linhas_kde_kwh_por_kw_escalaoes_0_4_e_30_1000.png")
+#
+#
+# # =========================
+# # 51G. DISTRIBUIÇÃO POR ESCALÃO — LINHAS COM FREQUÊNCIA
+# # =========================
+#
+# plt.figure(figsize=(12, 7))
+#
+# escalaoes_escolhidos = ["]0, 4]", "]30, 1000]"]
+#
+# cores = {
+#     "]0, 4]": "tab:blue",
+#     "]30, 1000]": "tab:red"
+# }
+#
+# for escalao in escalaoes_escolhidos:
+#     dados_escalao = energia_escalao[
+#         energia_escalao["Escalão médio de potência"] == escalao
+#     ]["kWh por kW instalado"].dropna()
+#
+#     if len(dados_escalao) == 0:
+#         continue
+#
+#     sns.histplot(
+#         dados_escalao,
+#         bins=50,
+#         element="step",
+#         fill=False,
+#         stat="count",
+#         linewidth=2.5,
+#         color=cores[escalao],
+#         label=escalao
+#     )
+#
+# plt.title("Distribuição da energia injetada por kW instalado por escalão médio")
+# plt.xlabel("kWh injetados por kW instalado")
+# plt.ylabel("Frequência")
+# plt.xlim(0, 120)
+# plt.legend(title="Escalão médio")
+#
+# guardar_grafico("51_linhas_frequencia_kwh_por_kw_escalaoes_0_4_e_30_1000.png")
+
 # # =========================
 # # 52. BOXPLOT kWh/kW POR DISTRITO
 # # =========================
@@ -2833,30 +2969,30 @@ energia_demo_200000 = energia_demo[
 # plt.ylabel("Número de instalações")
 #
 # guardar_grafico("73_populacao_vs_instalacoes_200000.png")
-
-# =========================
-# 73_50000. POPULAÇÃO VS NÚMERO DE INSTALAÇÕES (ZOOM)
-# =========================
-
-base_demo_25000 = base_demo[base_demo["População"] <= 25000].copy()
-
-plt.figure(figsize=(12, 7))
-
-sns.scatterplot(
-    data=base_demo_25000,
-    x="População",
-    y="Número de instalacões",
-    alpha=0.7
-)
-
-plt.xlim(0, 25000)
-
-plt.title("Relação entre população e número de instalações UPAC")
-plt.xlabel("População")
-plt.ylabel("Número de instalações")
-
-guardar_grafico("73_populacao_vs_instalacoes_25000.png")
-
+#
+# # =========================
+# # 73_50000. POPULAÇÃO VS NÚMERO DE INSTALAÇÕES (ZOOM)
+# # =========================
+#
+# base_demo_25000 = base_demo[base_demo["População"] <= 25000].copy()
+#
+# plt.figure(figsize=(12, 7))
+#
+# sns.scatterplot(
+#     data=base_demo_25000,
+#     x="População",
+#     y="Número de instalacões",
+#     alpha=0.7
+# )
+#
+# plt.xlim(0, 25000)
+#
+# plt.title("Relação entre população e número de instalações UPAC")
+# plt.xlabel("População")
+# plt.ylabel("Número de instalações")
+#
+# guardar_grafico("73_populacao_vs_instalacoes_25000.png")
+#
 # # =========================
 # # 74. POPULAÇÃO VS POTÊNCIA INSTALADA
 # # =========================
