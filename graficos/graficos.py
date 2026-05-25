@@ -220,7 +220,218 @@ energia["kWh por kW instalado"] = (
     energia["Energia Injetada (kWh)"] / energia["Potência Instalada (kW)"]
 )
 
+# =========================
+# LIMPEZA AUXILIAR PARA GRÁFICOS 56–70
+# =========================
+
+energia_limpa = energia.dropna(subset=["Distrito", "Concelho"]).copy()
+
+# Evitar divisões por zero
+energia_limpa = energia_limpa[
+    (energia_limpa["Potência Instalada (kW)"] > 0) &
+    (energia_limpa["Número de Instalações"] > 0)
+].copy()
+
 # summary_df(energia, "Injetada")
+
+# =========================
+# LEITURA DAS BASES DEMOGRÁFICAS
+# =========================
+
+PATH_POP_TOTAL = r"C:\Users\franc\Desktop\PROJETO\PFACD\demography\population_total\data_final\prediction.csv"
+
+PATH_DENSIDADE = r"C:\Users\franc\Desktop\PROJETO\PFACD\demography\population_density\population_density.csv"
+
+
+# -------------------------
+# População total
+# -------------------------
+
+pop_total = pd.read_csv(
+    PATH_POP_TOTAL,
+    sep=",",
+    encoding="utf-8-sig"
+)
+
+pop_total.columns = pop_total.columns.str.strip()
+
+# Remover coluna índice se existir
+if "Unnamed: 0" in pop_total.columns:
+    pop_total = pop_total.drop(columns=["Unnamed: 0"])
+
+# Converter colunas de anos para numérico
+anos_pop = [col for col in pop_total.columns if col.isdigit()]
+
+for col in anos_pop:
+    pop_total[col] = pd.to_numeric(pop_total[col], errors="coerce")
+
+
+# -------------------------
+# Densidade populacional
+# -------------------------
+
+densidade = pd.read_csv(
+    PATH_DENSIDADE,
+    sep=";",
+    encoding="utf-8-sig"
+)
+
+densidade.columns = densidade.columns.str.strip()
+
+anos_densidade = [col for col in densidade.columns if col.isdigit()]
+
+for col in anos_densidade:
+    densidade[col] = (
+        densidade[col]
+        .astype(str)
+        .str.replace(" ", "", regex=False)
+        .str.replace(",", ".", regex=False)
+    )
+    densidade[col] = pd.to_numeric(densidade[col], errors="coerce")
+
+
+# =========================
+# FILTRAR APENAS CONCELHOS PRESENTES NAS BASES E-REDES
+# =========================
+
+concelhos_eredes = set(upacs["Concelho"].dropna().unique())
+
+pop_municipios = pop_total[
+    pop_total["Name"].isin(concelhos_eredes)
+].copy()
+
+densidade_municipios = densidade[
+    densidade["Local"].isin(concelhos_eredes)
+].copy()
+
+
+# =========================
+# PREPARAR DADOS DEMOGRÁFICOS PARA MERGE
+# =========================
+
+# Usar 2025 para população total, se existir
+ano_pop_usado = "2025" if "2025" in pop_municipios.columns else max(anos_pop)
+
+pop_municipios = pop_municipios[["Name", ano_pop_usado]].rename(
+    columns={
+        "Name": "Concelho",
+        ano_pop_usado: "População"
+    }
+)
+
+# Usar 2024 para densidade, porque é o último ano disponível no ficheiro
+ano_densidade_usado = "2024"
+
+densidade_municipios = densidade_municipios[["Local", ano_densidade_usado]].rename(
+    columns={
+        "Local": "Concelho",
+        ano_densidade_usado: "Densidade populacional"
+    }
+)
+
+
+# =========================
+# BASE MUNICIPAL FINAL
+# =========================
+
+upacs_concelho_ultimo = (
+    upacs_ultimo
+    .groupby("Concelho")
+    .agg({
+        "Número de instalacões": "sum",
+        "Potência Total Instalada UPAC (kW)": "sum"
+    })
+    .reset_index()
+)
+
+base_demo = (
+    upacs_concelho_ultimo
+    .merge(pop_municipios, on="Concelho", how="inner")
+    .merge(densidade_municipios, on="Concelho", how="inner")
+)
+
+base_demo = base_demo[
+    (base_demo["População"] > 0) &
+    (base_demo["Densidade populacional"] > 0)
+].copy()
+
+base_demo["UPAC por 1000 habitantes"] = (
+    base_demo["Número de instalacões"]
+    / base_demo["População"]
+    * 1000
+)
+
+base_demo["kW por 1000 habitantes"] = (
+    base_demo["Potência Total Instalada UPAC (kW)"]
+    / base_demo["População"]
+    * 1000
+)
+
+base_demo["Potência média por instalação (kW)"] = (
+    base_demo["Potência Total Instalada UPAC (kW)"]
+    / base_demo["Número de instalacões"]
+)
+
+# =========================
+# BASE INTEGRADA: ENERGIA INJETADA + DEMOGRAFIA
+# =========================
+
+energia_concelho = (
+    energia_limpa
+    .groupby("Concelho")
+    .agg({
+        "Energia Injetada (kWh)": "sum",
+        "Potência Instalada (kW)": "sum",
+        "Número de Instalações": "sum"
+    })
+    .reset_index()
+)
+
+energia_concelho["Excedente por kW"] = (
+    energia_concelho["Energia Injetada (kWh)"]
+    / energia_concelho["Potência Instalada (kW)"]
+)
+
+energia_concelho["Excedente por instalação"] = (
+    energia_concelho["Energia Injetada (kWh)"]
+    / energia_concelho["Número de Instalações"]
+)
+
+# Juntar com base demográfica já criada anteriormente
+energia_demo = energia_concelho.merge(
+    base_demo[[
+        "Concelho",
+        "População",
+        "Densidade populacional",
+        "UPAC por 1000 habitantes",
+        "kW por 1000 habitantes",
+        "Potência média por instalação (kW)"
+    ]],
+    on="Concelho",
+    how="inner"
+)
+
+energia_demo = energia_demo[
+    (energia_demo["População"] > 0) &
+    (energia_demo["Densidade populacional"] > 0) &
+    (energia_demo["Potência Instalada (kW)"] > 0) &
+    (energia_demo["Número de Instalações"] > 0)
+].copy()
+
+energia_demo["Energia injetada por 1000 habitantes"] = (
+    energia_demo["Energia Injetada (kWh)"]
+    / energia_demo["População"]
+    * 1000
+)
+
+energia_demo_1000 = energia_demo[
+    energia_demo["Densidade populacional"] <= 1000
+].copy()
+
+energia_demo_200000 = energia_demo[
+    energia_demo["População"] <= 200000
+].copy()
+
 # # =========================
 # # 1. EVOLUÇÃO DO NÚMERO TOTAL DE INSTALAÇÕES
 # # =========================
@@ -1924,17 +2135,7 @@ energia["kWh por kW instalado"] = (
 # plt.legend(title="Distrito", bbox_to_anchor=(1.05, 1), loc="upper left")
 # guardar_grafico("55_evolucao_eficiencia_top5.png")
 #
-# # =========================
-# # LIMPEZA AUXILIAR PARA GRÁFICOS 56–70
-# # =========================
 #
-# energia_limpa = energia.dropna(subset=["Distrito", "Concelho"]).copy()
-#
-# # Evitar divisões por zero
-# energia_limpa = energia_limpa[
-#     (energia_limpa["Potência Instalada (kW)"] > 0) &
-#     (energia_limpa["Número de Instalações"] > 0)
-# ].copy()
 #
 #
 # # =========================
@@ -2540,7 +2741,723 @@ energia["kWh por kW instalado"] = (
 # plt.title("Matriz de correlação das variáveis da energia injetada")
 #
 # guardar_grafico("70_matriz_correlacao_energia.png")
+#
+# # =========================
+# # 71. TOP 15 CONCELHOS POR UPAC POR 1000 HABITANTES
+# # =========================
+#
+# top_upac_1000 = (
+#     base_demo
+#     .sort_values("UPAC por 1000 habitantes", ascending=False)
+#     .head(15)
+# )
+#
+# plt.figure(figsize=(12, 7))
+#
+# sns.barplot(
+#     data=top_upac_1000,
+#     x="UPAC por 1000 habitantes",
+#     y="Concelho"
+# )
+#
+# plt.title("Top 15 concelhos por número de UPAC por 1000 habitantes")
+# plt.xlabel("UPAC por 1000 habitantes")
+# plt.ylabel("Concelho")
+#
+# guardar_grafico("71_top15_upac_por_1000_habitantes.png")
+#
+#
+# # =========================
+# # 72. TOP 15 CONCELHOS POR POTÊNCIA INSTALADA POR 1000 HABITANTES
+# # =========================
+#
+# top_kw_1000 = (
+#     base_demo
+#     .sort_values("kW por 1000 habitantes", ascending=False)
+#     .head(15)
+# )
+#
+# plt.figure(figsize=(12, 7))
+#
+# sns.barplot(
+#     data=top_kw_1000,
+#     x="kW por 1000 habitantes",
+#     y="Concelho"
+# )
+#
+# plt.title("Top 15 concelhos por potência instalada por 1000 habitantes")
+# plt.xlabel("kW por 1000 habitantes")
+# plt.ylabel("Concelho")
+#
+# guardar_grafico("72_top15_kw_por_1000_habitantes.png")
+#
+#
+# # =========================
+# # 73. POPULAÇÃO VS NÚMERO DE INSTALAÇÕES
+# # =========================
+#
+# plt.figure(figsize=(12, 7))
+#
+# sns.scatterplot(
+#     data=base_demo,
+#     x="População",
+#     y="Número de instalacões",
+#     alpha=0.7
+# )
+#
+# plt.title("Relação entre população e número de instalações UPAC")
+# plt.xlabel("População")
+# plt.ylabel("Número de instalações")
+#
+# guardar_grafico("73_populacao_vs_instalacoes.png")
+#
+# # =========================
+# # 73_200000. POPULAÇÃO VS NÚMERO DE INSTALAÇÕES (ZOOM)
+# # =========================
+#
+# base_demo_200000 = base_demo[base_demo["População"] <= 200000].copy()
+#
+# plt.figure(figsize=(12, 7))
+#
+# sns.scatterplot(
+#     data=base_demo_200000,
+#     x="População",
+#     y="Número de instalacões",
+#     alpha=0.7
+# )
+#
+# plt.xlim(0, 200000)
+#
+# plt.title("Relação entre população e número de instalações UPAC")
+# plt.xlabel("População")
+# plt.ylabel("Número de instalações")
+#
+# guardar_grafico("73_populacao_vs_instalacoes_200000.png")
 
+# =========================
+# 73_50000. POPULAÇÃO VS NÚMERO DE INSTALAÇÕES (ZOOM)
+# =========================
 
+base_demo_25000 = base_demo[base_demo["População"] <= 25000].copy()
+
+plt.figure(figsize=(12, 7))
+
+sns.scatterplot(
+    data=base_demo_25000,
+    x="População",
+    y="Número de instalacões",
+    alpha=0.7
+)
+
+plt.xlim(0, 25000)
+
+plt.title("Relação entre população e número de instalações UPAC")
+plt.xlabel("População")
+plt.ylabel("Número de instalações")
+
+guardar_grafico("73_populacao_vs_instalacoes_25000.png")
+
+# # =========================
+# # 74. POPULAÇÃO VS POTÊNCIA INSTALADA
+# # =========================
+#
+# plt.figure(figsize=(12, 7))
+#
+# sns.scatterplot(
+#     data=base_demo,
+#     x="População",
+#     y="Potência Total Instalada UPAC (kW)",
+#     alpha=0.7
+# )
+#
+# plt.title("Relação entre população e potência instalada")
+# plt.xlabel("População")
+# plt.ylabel("Potência instalada (kW)")
+#
+# guardar_grafico("74_populacao_vs_potencia.png")
+#
+# # =========================
+# # 74_200000. POPULAÇÃO VS POTÊNCIA INSTALADA (ZOOM)
+# # =========================
+#
+# plt.figure(figsize=(12, 7))
+#
+# sns.scatterplot(
+#     data=base_demo_200000,
+#     x="População",
+#     y="Potência Total Instalada UPAC (kW)",
+#     alpha=0.7
+# )
+#
+# plt.xlim(0, 200000)
+#
+# plt.title("Relação entre população e potência instalada")
+# plt.xlabel("População")
+# plt.ylabel("Potência instalada (kW)")
+#
+# guardar_grafico("74_populacao_vs_potencia_200000.png")
+#
+#
+# # =========================
+# # 75. DENSIDADE POPULACIONAL VS UPAC POR 1000 HABITANTES
+# # =========================
+#
+# plt.figure(figsize=(12, 7))
+#
+# sns.scatterplot(
+#     data=base_demo,
+#     x="Densidade populacional",
+#     y="UPAC por 1000 habitantes",
+#     alpha=0.7
+# )
+#
+# plt.title("Densidade populacional vs UPAC por 1000 habitantes")
+# plt.xlabel("Densidade populacional")
+# plt.ylabel("UPAC por 1000 habitantes")
+#
+# guardar_grafico("75_densidade_vs_upac_por_1000.png")
+#
+# # =========================
+# # 75_1000. DENSIDADE POPULACIONAL VS UPAC POR 1000 HABITANTES (ZOOM)
+# # =========================
+#
+# base_demo_1000 = base_demo[base_demo["Densidade populacional"] <= 1000].copy()
+#
+# plt.figure(figsize=(12, 7))
+#
+# sns.scatterplot(
+#     data=base_demo_1000,
+#     x="Densidade populacional",
+#     y="UPAC por 1000 habitantes",
+#     alpha=0.7
+# )
+#
+# plt.xlim(0, 1000)
+#
+# plt.title("Densidade populacional vs UPAC por 1000 habitantes")
+# plt.xlabel("Densidade populacional")
+# plt.ylabel("UPAC por 1000 habitantes")
+#
+# guardar_grafico("75_densidade_vs_upac_por_1000_1000.png")
+#
+#
+# # =========================
+# # 76. DENSIDADE POPULACIONAL VS POTÊNCIA POR 1000 HABITANTES
+# # =========================
+#
+# plt.figure(figsize=(12, 7))
+#
+# sns.scatterplot(
+#     data=base_demo,
+#     x="Densidade populacional",
+#     y="kW por 1000 habitantes",
+#     alpha=0.7
+# )
+#
+# plt.title("Densidade populacional vs potência instalada por 1000 habitantes")
+# plt.xlabel("Densidade populacional")
+# plt.ylabel("kW por 1000 habitantes")
+#
+# guardar_grafico("76_densidade_vs_kw_por_1000.png")
+#
+# # =========================
+# # 76_1000. DENSIDADE POPULACIONAL VS POTÊNCIA POR 1000 HABITANTES (ZOOM)
+# # =========================
+#
+# plt.figure(figsize=(12, 7))
+#
+# sns.scatterplot(
+#     data=base_demo_1000,
+#     x="Densidade populacional",
+#     y="kW por 1000 habitantes",
+#     alpha=0.7
+# )
+#
+# plt.xlim(0, 1000)
+#
+# plt.title("Densidade populacional vs potência instalada por 1000 habitantes")
+# plt.xlabel("Densidade populacional")
+# plt.ylabel("kW por 1000 habitantes")
+#
+# guardar_grafico("76_densidade_vs_kw_por_1000_1000.png")
+#
+#
+# # =========================
+# # 77. POTÊNCIA MÉDIA POR INSTALAÇÃO VS DENSIDADE POPULACIONAL
+# # =========================
+#
+# plt.figure(figsize=(12, 7))
+#
+# sns.scatterplot(
+#     data=base_demo,
+#     x="Densidade populacional",
+#     y="Potência média por instalação (kW)",
+#     alpha=0.7
+# )
+#
+# plt.title("Densidade populacional vs potência média por instalação")
+# plt.xlabel("Densidade populacional")
+# plt.ylabel("Potência média por instalação (kW)")
+#
+# guardar_grafico("77_densidade_vs_potencia_media.png")
+#
+# # =========================
+# # 77_1000. POTÊNCIA MÉDIA POR INSTALAÇÃO VS DENSIDADE POPULACIONAL (ZOOM)
+# # =========================
+#
+# plt.figure(figsize=(12, 7))
+#
+# sns.scatterplot(
+#     data=base_demo_1000,
+#     x="Densidade populacional",
+#     y="Potência média por instalação (kW)",
+#     alpha=0.7
+# )
+#
+# plt.xlim(0, 1000)
+#
+# plt.title("Densidade populacional vs potência média por instalação")
+# plt.xlabel("Densidade populacional")
+# plt.ylabel("Potência média por instalação (kW)")
+#
+# guardar_grafico("77_densidade_vs_potencia_media_1000.png")
+#
+# # =========================
+# # 78. SCATTER COM TAMANHO: POPULAÇÃO, POTÊNCIA E INSTALAÇÕES
+# # =========================
+#
+# plt.figure(figsize=(12, 7))
+#
+# sns.scatterplot(
+#     data=base_demo,
+#     x="População",
+#     y="Potência Total Instalada UPAC (kW)",
+#     size="Número de instalacões",
+#     sizes=(40, 700),
+#     alpha=0.6,
+#     legend=True
+# )
+#
+# plt.title("População vs potência instalada com dimensão pelo número de instalações")
+# plt.xlabel("População")
+# plt.ylabel("Potência instalada (kW)")
+#
+# guardar_grafico("78_populacao_potencia_size_instalacoes.png")
+#
+#
+# # =========================
+# # 79. MATRIZ DE CORRELAÇÃO COM VARIÁVEIS DEMOGRÁFICAS
+# # =========================
+#
+# corr_demo = base_demo[
+#     [
+#         "População",
+#         "Densidade populacional",
+#         "Número de instalacões",
+#         "Potência Total Instalada UPAC (kW)",
+#         "UPAC por 1000 habitantes",
+#         "kW por 1000 habitantes",
+#         "Potência média por instalação (kW)"
+#     ]
+# ].corr()
+#
+# plt.figure(figsize=(10, 8))
+#
+# sns.heatmap(
+#     corr_demo,
+#     annot=True,
+#     cmap="coolwarm",
+#     vmin=-1,
+#     vmax=1,
+#     linewidths=0.5
+# )
+#
+# plt.title("Matriz de correlação entre autoconsumo e variáveis demográficas")
+#
+# guardar_grafico("79_correlacao_demografia_autoconsumo.png")
+#
+#
+# # =========================
+# # 80. DISTRIBUIÇÃO DAS UPAC POR 1000 HABITANTES
+# # =========================
+#
+# plt.figure(figsize=(10, 6))
+#
+# sns.histplot(
+#     data=base_demo,
+#     x="UPAC por 1000 habitantes",
+#     bins=40,
+#     kde=True
+# )
+#
+# plt.title("Distribuição relativa de UPACs por concelho")
+# plt.xlabel("UPAC por 1000 habitantes")
+# plt.ylabel("Frequência")
+#
+# guardar_grafico("80_distribuicao_upac_por_1000_habitantes.png")
+#
+# # =========================
+# # 81. DENSIDADE POPULACIONAL VS EXCEDENTE POR kW
+# # =========================
+#
+# plt.figure(figsize=(12, 7))
+#
+# sns.scatterplot(
+#     data=energia_demo_1000,
+#     x="Densidade populacional",
+#     y="Excedente por kW",
+#     alpha=0.7
+# )
+#
+# plt.xlim(0, 1000)
+#
+# plt.title("Densidade populacional vs excedente por kW instalado")
+# plt.xlabel("Densidade populacional")
+# plt.ylabel("kWh injetados por kW instalado")
+#
+# guardar_grafico("81_densidade_vs_excedente_por_kw_1000.png")
+#
+# # =========================
+# # 82. DENSIDADE POPULACIONAL VS EXCEDENTE POR INSTALAÇÃO
+# # =========================
+#
+# plt.figure(figsize=(12, 7))
+#
+# sns.scatterplot(
+#     data=energia_demo_1000,
+#     x="Densidade populacional",
+#     y="Excedente por instalação",
+#     alpha=0.7
+# )
+#
+# plt.xlim(0, 1000)
+#
+# plt.title("Densidade populacional vs excedente por instalação")
+# plt.xlabel("Densidade populacional")
+# plt.ylabel("kWh injetados por instalação")
+#
+# guardar_grafico("82_densidade_vs_excedente_por_instalacao_1000.png")
+#
+# # =========================
+# # 83. UPAC POR 1000 HABITANTES VS EXCEDENTE POR kW
+# # =========================
+#
+# plt.figure(figsize=(12, 7))
+#
+# sns.scatterplot(
+#     data=energia_demo,
+#     x="UPAC por 1000 habitantes",
+#     y="Excedente por kW",
+#     alpha=0.7
+# )
+#
+# plt.title("Penetração de UPAC vs excedente relativo")
+# plt.xlabel("UPAC por 1000 habitantes")
+# plt.ylabel("kWh injetados por kW instalado")
+#
+# guardar_grafico("83_upac_por_1000_vs_excedente_kw.png")
+#
+# # =========================
+# # 84. POTÊNCIA POR 1000 HABITANTES VS EXCEDENTE POR kW
+# # =========================
+#
+# plt.figure(figsize=(12, 7))
+#
+# sns.scatterplot(
+#     data=energia_demo,
+#     x="kW por 1000 habitantes",
+#     y="Excedente por kW",
+#     alpha=0.7
+# )
+#
+# plt.title("Potência instalada por habitante vs excedente relativo")
+# plt.xlabel("kW por 1000 habitantes")
+# plt.ylabel("kWh injetados por kW instalado")
+#
+# guardar_grafico("84_kw_por_1000_vs_excedente_kw.png")
+# # =========================
+# # 85. POPULAÇÃO VS ENERGIA INJETADA TOTAL
+# # =========================
+#
+# plt.figure(figsize=(12, 7))
+#
+# sns.scatterplot(
+#     data=energia_demo_200000,
+#     x="População",
+#     y="Energia Injetada (kWh)",
+#     alpha=0.7
+# )
+#
+# plt.xlim(0, 200000)
+#
+# plt.title("População vs energia excedente injetada")
+# plt.xlabel("População")
+# plt.ylabel("Energia injetada (kWh)")
+#
+# guardar_grafico("85_populacao_vs_energia_injetada_200000.png")
+#
+# # =========================
+# # 86. EXCEDENTE POR kW POR CLASSES DE DENSIDADE
+# # =========================
+#
+# energia_demo["Classe de densidade"] = pd.cut(
+#     energia_demo["Densidade populacional"],
+#     bins=[0, 50, 100, 250, 500, 1000, float("inf")],
+#     labels=[
+#         "0-50",
+#         "50-100",
+#         "100-250",
+#         "250-500",
+#         "500-1000",
+#         ">1000"
+#     ]
+# )
+#
+# plt.figure(figsize=(12, 7))
+#
+# sns.boxplot(
+#     data=energia_demo,
+#     x="Classe de densidade",
+#     y="Excedente por kW"
+# )
+#
+# plt.title("Distribuição do excedente por kW por classe de densidade populacional")
+# plt.xlabel("Classe de densidade populacional")
+# plt.ylabel("kWh injetados por kW instalado")
+#
+# guardar_grafico("86_boxplot_excedente_kw_por_classe_densidade.png")
+#
+# # =========================
+# # 87. DENSIDADE POPULACIONAL VS ENERGIA INJETADA POR 1000 HABITANTES
+# # =========================
+#
+# plt.figure(figsize=(12, 7))
+#
+# sns.scatterplot(
+#     data=energia_demo_1000,
+#     x="Densidade populacional",
+#     y="Energia injetada por 1000 habitantes",
+#     alpha=0.7
+# )
+#
+# plt.xlim(0, 1000)
+#
+# plt.title("Densidade populacional vs energia injetada por 1000 habitantes")
+# plt.xlabel("Densidade populacional")
+# plt.ylabel("Energia injetada por 1000 habitantes (kWh)")
+#
+# guardar_grafico("87_densidade_vs_energia_por_1000hab_1000.png")
+#
+# # =========================
+# # 88. MATRIZ DE CORRELAÇÃO: DEMOGRAFIA + EXCEDENTE
+# # =========================
+#
+# corr_integrada = energia_demo[
+#     [
+#         "População",
+#         "Densidade populacional",
+#         "UPAC por 1000 habitantes",
+#         "kW por 1000 habitantes",
+#         "Potência média por instalação (kW)",
+#         "Energia Injetada (kWh)",
+#         "Excedente por kW",
+#         "Excedente por instalação",
+#         "Energia injetada por 1000 habitantes"
+#     ]
+# ].corr()
+#
+# plt.figure(figsize=(11, 9))
+#
+# sns.heatmap(
+#     corr_integrada,
+#     annot=True,
+#     cmap="coolwarm",
+#     vmin=-1,
+#     vmax=1,
+#     linewidths=0.5
+# )
+#
+# plt.title("Matriz de correlação entre demografia, autoconsumo e excedente")
+#
+# guardar_grafico("88_correlacao_demografia_autoconsumo_excedente.png")
+#
+# # =========================
+# # 89. DENSIDADE VS EXCEDENTE POR kW COM TAMANHO PELA POTÊNCIA INSTALADA
+# # =========================
+#
+# plt.figure(figsize=(12, 7))
+#
+# sns.scatterplot(
+#     data=energia_demo_1000,
+#     x="Densidade populacional",
+#     y="Excedente por kW",
+#     size="Potência Instalada (kW)",
+#     sizes=(40, 700),
+#     alpha=0.6,
+#     legend=True
+# )
+#
+# plt.xlim(0, 1000)
+#
+# plt.title("Densidade populacional vs excedente por kW com dimensão pela potência instalada")
+# plt.xlabel("Densidade populacional")
+# plt.ylabel("kWh injetados por kW instalado")
+#
+# guardar_grafico("89_densidade_vs_excedente_kw_size_potencia_1000.png")
+#
+# # =========================
+# # 90. QUADRANTES: PENETRAÇÃO DE UPAC VS EXCEDENTE RELATIVO
+# # =========================
+#
+# plt.figure(figsize=(12, 7))
+#
+# sns.scatterplot(
+#     data=energia_demo,
+#     x="UPAC por 1000 habitantes",
+#     y="Excedente por kW",
+#     alpha=0.7
+# )
+#
+# media_upac_1000 = energia_demo["UPAC por 1000 habitantes"].mean()
+# media_excedente_kw = energia_demo["Excedente por kW"].mean()
+#
+# plt.axvline(
+#     media_upac_1000,
+#     linestyle="--",
+#     color="black",
+#     linewidth=1
+# )
+#
+# plt.axhline(
+#     media_excedente_kw,
+#     linestyle="--",
+#     color="black",
+#     linewidth=1
+# )
+#
+# plt.title("Quadrantes: penetração de UPAC e excedente relativo")
+# plt.xlabel("UPAC por 1000 habitantes")
+# plt.ylabel("kWh injetados por kW instalado")
+#
+# plt.text(
+#     media_upac_1000 * 1.05,
+#     media_excedente_kw * 1.05,
+#     "Alta penetração\nalto excedente",
+#     fontsize=9
+# )
+#
+# plt.text(
+#     energia_demo["UPAC por 1000 habitantes"].min(),
+#     media_excedente_kw * 1.05,
+#     "Baixa penetração\nalto excedente",
+#     fontsize=9
+# )
+#
+# plt.text(
+#     media_upac_1000 * 1.05,
+#     energia_demo["Excedente por kW"].min(),
+#     "Alta penetração\nbaixo excedente",
+#     fontsize=9
+# )
+#
+# plt.text(
+#     energia_demo["UPAC por 1000 habitantes"].min(),
+#     energia_demo["Excedente por kW"].min(),
+#     "Baixa penetração\nbaixo excedente",
+#     fontsize=9
+# )
+#
+# guardar_grafico("90_quadrantes_upac_por_1000_excedente_kw.png")
+#
+# # =========================
+# # 91. BOXPLOT UPAC POR 1000 HABITANTES POR CLASSE DE DENSIDADE
+# # =========================
+#
+# base_demo["Classe de densidade"] = pd.cut(
+#     base_demo["Densidade populacional"],
+#     bins=[0, 50, 100, 250, 500, 1000, float("inf")],
+#     labels=[
+#         "0-50",
+#         "50-100",
+#         "100-250",
+#         "250-500",
+#         "500-1000",
+#         ">1000"
+#     ]
+# )
+#
+# plt.figure(figsize=(12, 7))
+#
+# sns.boxplot(
+#     data=base_demo,
+#     x="Classe de densidade",
+#     y="UPAC por 1000 habitantes"
+# )
+#
+# plt.title("Distribuição das UPAC por 1000 habitantes por classe de densidade")
+# plt.xlabel("Classe de densidade populacional")
+# plt.ylabel("UPAC por 1000 habitantes")
+#
+# guardar_grafico("91_boxplot_upac_por_1000_por_classe_densidade.png")
+#
+# # =========================
+# # 92. BOXPLOT kW POR 1000 HABITANTES POR CLASSE DE DENSIDADE
+# # =========================
+#
+# plt.figure(figsize=(12, 7))
+#
+# sns.boxplot(
+#     data=base_demo,
+#     x="Classe de densidade",
+#     y="kW por 1000 habitantes"
+# )
+#
+# plt.title("Distribuição da potência instalada por 1000 habitantes por classe de densidade")
+# plt.xlabel("Classe de densidade populacional")
+# plt.ylabel("kW por 1000 habitantes")
+#
+# guardar_grafico("92_boxplot_kw_por_1000_por_classe_densidade.png")
+#
+# # =========================
+# # 92. BOXPLOT kW POR 1000 HABITANTES POR CLASSE DE DENSIDADE
+# # =========================
+#
+# plt.figure(figsize=(12, 7))
+#
+# sns.boxplot(
+#     data=base_demo,
+#     x="Classe de densidade",
+#     y="kW por 1000 habitantes"
+# )
+#
+# plt.title("Distribuição da potência instalada por 1000 habitantes por classe de densidade")
+# plt.xlabel("Classe de densidade populacional")
+# plt.ylabel("kW por 1000 habitantes")
+#
+# guardar_grafico("92_boxplot_kw_por_1000_por_classe_densidade.png")
+#
+# # =========================
+# # 94. TOP CONCELHOS COM MAIOR PENETRAÇÃO RELATIVA DE UPAC
+# # =========================
+#
+# top_outliers_upac = (
+#     base_demo
+#     .sort_values("UPAC por 1000 habitantes", ascending=False)
+#     .head(15)
+# )
+#
+# plt.figure(figsize=(12, 7))
+#
+# sns.barplot(
+#     data=top_outliers_upac,
+#     x="UPAC por 1000 habitantes",
+#     y="Concelho"
+# )
+#
+# plt.title("Top 15 concelhos com maior penetração relativa de UPAC")
+# plt.xlabel("UPAC por 1000 habitantes")
+# plt.ylabel("Concelho")
+#
+# guardar_grafico("94_top15_concelhos_penetracao_upac.png")
 
 print("Gráficos criados com sucesso em:", OUTPUT_DIR)
