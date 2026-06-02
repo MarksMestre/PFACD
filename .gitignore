@@ -95,3 +95,8 @@ data_final/
 data_intermediate
 *.html
 __pycache__/
+
+
+graficos/principais/*
+!graficos/principais/test
+graficos/principais/test/*
