@@ -803,7 +803,15 @@ with open("pt.json") as f:
 print("Top-level keys:", portugal_geo.keys())
 if "features" not in portugal_geo:
     print("Warning: 'features' key missing!")
-portugal_geo["features"] = portugal_geo["features"][:18]
+
+portugal_geo["features"] = [
+    feature for feature in portugal_geo["features"]
+    if feature["properties"]["name"] in [
+    "Aveiro", "Beja", "Braga", "Bragança", "Castelo Branco", "Coimbra",
+    "Évora", "Faro", "Guarda", "Leiria", "Lisboa", "Portalegre",
+    "Porto", "Santarém", "Setúbal", "Viana do Castelo", "Vila Real", "Viseu"
+]
+]
 
 features = portugal_geo["features"]
 print("Number of features (regions):", len(features))
@@ -831,7 +839,7 @@ def make_choropleth(data, variable, title, range_col, figname):
     )
     fig.update_layout(
         width=500,
-        height=500,
+        height=800,
         margin={"r": 0, "t": 50, "l": 0, "b": 0},
         title=dict(
             x=0.5,
@@ -840,7 +848,13 @@ def make_choropleth(data, variable, title, range_col, figname):
         coloraxis_colorbar=dict(
             x=0.85,
             thickness=15,
-            len=0.7
+            len=0.7,
+            # Add the title configuration here
+            title=dict(
+                text=variable,  # Or whatever text you want for the colorbar
+                side="right",  # Options: "top", "bottom", "left", "right"
+                font=dict(size=12)  # Optional: tweak size to fit nicely
+            )
         )
     )
     fig.update_geos(
@@ -863,6 +877,39 @@ make_choropleth(df_distrito[df_distrito["Trimestre"] == "2022T4"], "Potência To
 make_choropleth(df_distrito[df_distrito["Trimestre"] == "2025T4"], "Potência Total Instalada UPAC (kW)",
                 "Potência total instalada (UPACs) no último semestre de 2025", [0, 350000], "mapa_2025_potency.png")
 
+df_injecao = df_distrito[df_distrito["Trimestre"] == "2024T4"]
+df_injecao = pd.merge(df_injecao, ler_csv_robusto("injecaoanual.csv"), on="Distrito", how = "left")
+df_injecao["injecao em 2024 (kWh)"] = pd.to_numeric(df_injecao["injecao em 2024 (kWh)"], errors="coerce")
+df_injecao = pd.merge(df_injecao, ler_csv_robusto("estimativas_rad_raster.csv"), on="Distrito", how = "left")
+df_injecao["Radiation"] = pd.to_numeric(df_injecao["Radiation"], errors="coerce")
+df_injecao.rename(columns={"Radiation": "kWh/kWp"}, inplace=True)
+df_injecao["Estimativa(kWh)_AC"] = df_injecao["Potência Total Instalada UPAC (kW)"] * df_injecao["kWh/kWp"] # Estimativa com base em E = Pac * Y
+df_injecao["Percentagem injetada"] = df_injecao["injecao em 2024 (kWh)"]/df_injecao["Estimativa(kWh)_AC"] * 100
+df_injecao.to_csv("injecao_percentual.csv", index=False)
+
+
+
+
+df_potencial_real = df_distrito[df_distrito["Trimestre"] == "2025T4"]
+df_potencial_real = pd.merge(df_potencial_real, ler_csv_robusto("../../geoespaciais/district_potential.csv"), on="Distrito", how = "left")
+df_potencial_real = pd.merge(df_potencial_real, ler_csv_robusto("estimativas_rad_raster.csv"), on="Distrito", how = "left")
+
+
+df_potencial_real["TWh_per_year"] = pd.to_numeric(df_potencial_real["TWh_per_year"], errors="coerce")
+df_potencial_real["Radiation"] = pd.to_numeric(df_potencial_real["Radiation"], errors="coerce")
+df_potencial_real.rename(columns={"Radiation": "kWh/kWp"}, inplace=True)
+
+#df_potencial_real["Estimativa(kWh)"] = df_potencial_real["Potência Total Instalada UPAC (kW)"] * df_potencial_real["kWh/kWp"] * 0.75 # Estimativa com base em E = P * G * PR
+df_potencial_real["Estimativa(kWh)_AC"] = df_potencial_real["Potência Total Instalada UPAC (kW)"] * df_potencial_real["kWh/kWp"] # Estimativa com base em E = Pac * Y
+df_potencial_real["Estimativa(kWh)_DC"] = df_potencial_real["Estimativa(kWh)_AC"] * 1.2# Estimativa com base em E = Pdc *Y, onde Pdc = Pac * R. Em vez de fazermos do 0, multiplicamos só o anterior por 1.2
+
+
+df_potencial_real["kWh_per_year"] = df_potencial_real["TWh_per_year"] * 10**9
+df_potencial_real["Percentagem conseguida"] =  df_potencial_real["Estimativa(kWh)_DC"]/ df_potencial_real["kWh_per_year"] * 100
+print("National percentage attained: ", df_potencial_real["Estimativa(kWh)_DC"].sum() / df_potencial_real["kWh_per_year"].sum() * 100,"%")
+print(df_potencial_real["Estimativa(kWh)_DC"].sum()/10**9)
+print(df_injecao["Potência Total Instalada UPAC (kW)"].sum() / 10**6)
+print(df_injecao["injecao em 2024 (kWh)"].sum() / df_injecao["Estimativa(kWh)_AC"].sum() * 100)
 
 # print(df[df["Trimestre"] == "2025T4"]["Número de instalacões"].sum())
 # print(df[df["Trimestre"] == "2025T4"]["Potência Total Instalada UPAC (kW)"].sum())
@@ -871,4 +918,22 @@ print(df_distrito[df_distrito["Trimestre"] == "2025T4"])
 # df_distrito_gr = df_distrito.groupby("Distrito")["Número de instalacões"].sum().reset_index()
 # print(df_distrito_gr)
 
+make_choropleth(df_potencial_real, "Percentagem conseguida",
+                "Proximidade percentual ao potencial fotovoltaíco em telhados", [0, 10], "mapa_2025_potencial.png")
+
+
+
+
 df.to_csv('upacs_totais_limpo.csv', index=False)
+df_potencial_real.to_csv('district_performance.csv', columns=["Distrito", "Estimativa(kWh)_AC", "Estimativa(kWh)_DC", "kWh_per_year", "Percentagem conseguida"], index=False)
+
+
+
+
+
+
+
+
+
+total_theoretical_twh = df_potencial_real["kWh_per_year"].sum() / 10**9
+print(f"Your dataset's total theoretical roof potential: {total_theoretical_twh:.2f} TWh/year")
