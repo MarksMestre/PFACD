@@ -98,6 +98,8 @@ DEMOGRAPHY_FOLDER = os.path.join(BASE_FOLDER, "demography")
 # Densidade
 DENSIDADE_FOLDER = os.path.join(DEMOGRAPHY_FOLDER, "population_density")
 DENSIDADE_CSV = os.path.join(DENSIDADE_FOLDER, "population_density.csv")
+DENSIDADE_FINAL_FOLDER = os.path.join(DENSIDADE_FOLDER, "data_final")
+DENSIDADE_FINAL_CSV = os.path.join(DENSIDADE_FINAL_FOLDER, "population_density_final.csv")
 
 
 

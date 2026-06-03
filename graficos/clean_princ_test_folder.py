@@ -1,9 +1,10 @@
 import os
 
 
-def main():
+def main(test_folder=None):
     grafs_folder = os.path.dirname(os.path.abspath(__file__))
-    test_folder = os.path.join(grafs_folder, "principais", "test")
+    if test_folder is None:
+        test_folder = os.path.join(grafs_folder, "principais", "test")
     if os.path.exists(test_folder):
         for filename in os.listdir(test_folder):
             file_path = os.path.join(test_folder, filename)
