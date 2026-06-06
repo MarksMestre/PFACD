@@ -2116,9 +2116,9 @@ energia_escalao["Escalão médio de potência"] = pd.cut(
     include_lowest=True
 )
 
-def graph_51_escalao():
+def graph_51_escalao(folder_path=OUTPUT_DIR):
 
-    
+    folder_path = os.path.join(folder_path, "51_distribuicao_kwh_por_kw_escalao_medio")
 
     print("\nContagem por escalão médio de potência:")
     print(energia_escalao["Escalão médio de potência"].value_counts(dropna=False))
@@ -2136,7 +2136,7 @@ def graph_51_escalao():
             kde=True
         )
 
-        plt.title(f"Distribuição da energia injetada por kW instalado — escalão médio {escalao}")
+        plt.title(f"Distribuição da energia injetada por kW instalado — escalão {escalao}")
         plt.xlabel("kWh injetados por kW instalado")
         plt.ylabel("Frequência")
 
@@ -2147,10 +2147,51 @@ def graph_51_escalao():
             .replace(",", "")
             .replace(" ", "")
             .replace(".", "_")
-            .replace(">", "maior_")
+            .replace(">", "+")
         )
 
-        guardar_grafico(f"{nome_ficheiro}.png")
+        guardar_grafico(os.path.join(folder_path, f"{nome_ficheiro}.png"))
+
+# ========================
+# 51E. DISTRIBUIÇÃO DO kWh POR kW INSTALADO POR ESCALÃO DE POTÊNCIA - ANUAL PARA RETIRAR SAZONALIDADE
+# =========================
+def graph_51_escalao_anual(folder_path=OUTPUT_DIR):
+
+    folder_path = os.path.join(folder_path, "51E_distribuicao_kwh_por_kw_escalao_medio_anual")
+
+    energia_escalao_anual = (
+        energia_escalao.groupby(["Ano", "Escalão médio de potência"])["kWh por kW instalado"].sum().reset_index().copy()
+    )
+
+    for escalao in energia_escalao_anual["Escalão médio de potência"].dropna().unique():
+        dados_escalao = energia_escalao_anual[
+            energia_escalao_anual["Escalão médio de potência"] == escalao
+        ]
+
+        plt.figure(figsize=(12, 7))
+
+        sns.lineplot(
+            data=dados_escalao,
+            x="Ano",
+            y="kWh por kW instalado",
+            marker="o"
+        )
+
+        plt.title(f"Evolução do kWh por kW instalado — escalão {escalao}")
+        plt.xlabel("Ano")
+        plt.ylabel("kWh injetados por kW instalado")
+
+        nome_ficheiro = (
+            f"51_evolucao_kwh_por_kw_escalao_medio_anual_{str(escalao)}"
+            .replace("]", "")
+            .replace("[", "")
+            .replace(",", "")
+            .replace(" ", "")
+            .replace(".", "_")
+            .replace(">", "+")
+        )
+
+        guardar_grafico(os.path.join(folder_path, f"{nome_ficheiro}.png"))
 
 # =========================
 # 51F. LINHAS KDE DO kWh POR kW INSTALADO — ESCALÕES SELECIONADOS
@@ -3601,7 +3642,6 @@ def graph_90():
 # =========================
 # 91. BOXPLOT UPAC POR 1000 HABITANTES POR CLASSE DE DENSIDADE
 # =========================
-
 base_demo["Classe de densidade"] = pd.cut(
     base_demo["Densidade populacional"],
     bins=[0, 50, 100, 250, 500, 1000, float("inf")],
@@ -3651,7 +3691,6 @@ def graph_92():
 # =========================
 # 94. TOP CONCELHOS COM MAIOR PENETRAÇÃO RELATIVA DE UPAC
 # =========================
-
 def graph_94():
     top_outliers_upac = (
         base_demo
@@ -4064,7 +4103,10 @@ def graph_95():
     graph_95D(graph_95_dir)
     graph_95E(graph_95_dir)
 
-
+# =========================
+# 96. ANÁLISE DE CORRELAÇÃO ENTRE NÚMERO DE
+# UPACs E EXCEDENTE RELATIVO (kWh por kW instalado) POR ESCALÃO
+# =========================
 def graph_96():
 
     folder_96 = os.path.join(OUTPUT_DIR, "graph_96")
@@ -4109,7 +4151,9 @@ def graph_96():
     for escalao in energia_escalao["Escalão médio de potência"].unique():
         graph_por_escalao(folder_96, escalao)
     
-
+# =========================
+# 97. ANÁLISE DE SÉRIE TEMPORAL: EVOLUÇÃO DO NÚMERO DE UPACs E EXCEDENTE RELATIVO AO LONGO DO TEMPO POR ESCALÃO
+# =========================
 def graph_97():
 
     folder_97 = os.path.join(OUTPUT_DIR, "graph_97")
@@ -4169,14 +4213,311 @@ def graph_97():
     for escalao in energia_escalao["Escalão médio de potência"].unique():
         graph_por_escalao(folder_97, escalao)
 
+    print("✅ Todos os gráficos do Graph 97 gerados com sucesso!")
 
+# =========================
+# 98. ANÁLISE DE CORRELAÇÃO GLOBAL ENTRE POTÊNCIA INSTALADA E EXCEDENTE RELATIVO (SEM ISOLAMENTO POR ESCALÃO)
+# =========================
+def graph_98(folder_path=OUTPUT_DIR):
+
+    print(f"\n🔄 A preparar dados para o Graph 98 (Correlação: Potência vs. Excedente)")
+    
+    # 1. Desta vez nao isolamos por escalao porque nao faz sentido
+    df_linhas = energia_escalao.copy()
+    
+    if df_linhas.empty:
+        print(f"⚠️ Sem observações suficientes")
+        return
+    
+    # 2. Configurar o visual sem utilizar plt.figure()
+    fig, ax = plt.subplots(figsize=(12, 6))
+    
+    # Scatter plot com linha de regressão linear global
+    sns.regplot(
+        data=df_linhas,
+        x="Potência Instalada (kW)",
+        y="kWh por kW instalado",
+        scatter_kws={"alpha": 0.3, "s": 12, "color": "tab:blue"},
+        line_kws={"color": "tab:red", "linewidth": 2.5, "label": "Tendência de Correlação"},
+        ax=ax
+    )
+    
+    # Calcular o coeficiente de correlação de Pearson ($r$) de forma dinâmica
+    correlacao = df_linhas["Potência Instalada (kW)"].corr(df_linhas["kWh por kW instalado"])
+    
+    # 3. Customização do gráfico através do objeto 'ax'
+    ax.set_title(f"Graph 98: Avaliação de Correlação (Potência Instalada vs. Excedente Relativo)\n(Pearson r: {correlacao:.2f})", fontsize=13)
+    ax.set_xlabel("Potência Instalada (kW) por Observação")
+    ax.set_ylabel("Excedente de Energia (kWh por kW instalado)")
+    ax.legend(loc="upper right")
+    
+    # Gravação segura
+    path = os.path.join(folder_path, f"graph_98_correlacao_potencia_excedente.png")
+    guardar_grafico(path)
+    print(f"✅ Graph 98 guardado com sucesso!")
+    
+# =========================
+# 99. ANÁLISE DE SÉRIE TEMPORAL: EVOLUÇÃO DA POTÊNCIA INSTALADA E EXCEDENTE RELATIVO AO LONGO DO TEMPO POR ESCALÃO
+# =========================
+def graph_99(folder_path=OUTPUT_DIR):
+
+    folder_99 = os.path.join(folder_path, "graph_99")
+
+    def graph_por_escalao(folder_path, escalao_nome="]0, 4]"):
+
+        print(f"\n🔄 A preparar dados para o Graph 99 (Série Temporal Potência) — Escalão {escalao_nome}...")
+        
+        # 1. Isolar o escalão escolhido
+        df_linhas = energia_escalao[energia_escalao["Escalão médio de potência"] == escalao_nome].copy()
+        
+        if df_linhas.empty:
+            print(f"⚠️ Sem observações suficientes para o escalão {escalao_nome}")
+            return
+        
+        # 2. Agrupar por 'Data' para avaliar a potência acumulada vs. excedente médio
+        df_tempo = df_linhas.groupby("Data").agg({
+            "Potência Instalada (kW)": "sum",        # Volume total de kW ativos no escalão neste período
+            "kWh por kW instalado": "mean"           # Comportamento médio do excedente relativo
+        }).reset_index().sort_values("Data")
+        
+        # 3. Construção do gráfico de Duplo Eixo (Dual Axis)
+        fig, ax1 = plt.subplots(figsize=(14, 6))
+        
+        # EIXO 1 (Esquerdo, Azul): Crescimento da Potência Instalada total ao longo do tempo
+        color_potencia = 'tab:blue'
+        ax1.plot(
+            df_tempo["Data"], df_tempo["Potência Instalada (kW)"], 
+            marker="o", color=color_potencia, linewidth=2.5, label="Potência Total Instalada (kW)"
+        )
+        ax1.set_xlabel("Linha Temporal (Meses / Anos)")
+        ax1.set_ylabel("Capacidade Total Instalada (kW)", color=color_potencia, fontsize=11)
+        ax1.tick_params(axis='y', labelcolor=color_potencia)
+        ax1.grid(True, alpha=0.3)
+        
+        # EIXO 2 (Direito, Laranja): Flutuação do Excedente Relativo
+        ax2 = ax1.twinx()
+        color_excedente = 'tab:orange'
+        ax2.plot(
+            df_tempo["Data"], df_tempo["kWh por kW instalado"], 
+            marker="s", linestyle="--", color=color_excedente, linewidth=2, label="Excedente Médio (kWh/kW)"
+        )
+        ax2.set_ylabel("Excedente Relativo Médio (kWh por kW instalado)", color=color_excedente, fontsize=11)
+        ax2.tick_params(axis='y', labelcolor=color_excedente)
+        
+        # 4. Ajustes finais e união das legendas de ambos os eixos
+        ax1.set_title(f"Graph 99: Impacto do Crescimento da Potência no Injeção de Excedentes\nEvolução Temporal no Escalão {escalao_nome}", fontsize=13)
+        
+        lines_1, labels_1 = ax1.get_legend_handles_labels()
+        lines_2, labels_2 = ax2.get_legend_handles_labels()
+        ax1.legend(lines_1 + lines_2, labels_1 + labels_2, loc="upper left")
+        
+        sufixo = escalao_nome.replace("]", "").replace("[", "").replace(",", "_").replace(" ", "").replace(">", "+")
+        path = os.path.join(folder_path, f"graph_99_serie_temporal_{sufixo}.png")
+        guardar_grafico(path)
+        print(f"✅ Graph 99 para escalao {escalao_nome} guardado com sucesso!")
+
+    for escalao in energia_escalao["Escalão médio de potência"].unique():
+        graph_por_escalao(folder_99, escalao)
+
+
+    print(f"✅ Graphs 99 guardados com sucesso!")
+
+# =========================
+# 80A. IDENTIFICAÇÃO DE CONCENTRAÇÕES ACIMA DA DISTRIBUIÇÃO BASE
+# =========================
+def graph_80A(folder_path=OUTPUT_DIR):
+    print("\n📊 A gerar Graph 80A (Destaque de Perfis Dominantes com Rótulos)...")
+    
+    # 1. Configurar o gráfico base
+    fig, ax = plt.subplots(figsize=(12, 6))
+    
+    # Extrair os dados limpos
+    dados = base_demo["UPAC por 1000 habitantes"].dropna()
+    
+    # Desenhar o histograma básico e guardar os objetos das barras (patches)
+    n_counts, bins, patches = ax.hist(
+        dados, bins=40, alpha=0.6, color="tab:blue", edgecolor="white", label="Frequência Real"
+    )
+    
+    # 2. Calcular a curva KDE (Estimativa de Densidade de Kernel) à mesma escala do histograma
+    kde = scipy.stats.gaussian_kde(dados)
+    bin_width = bins[1] - bins[0]
+    x_eval = np.linspace(dados.min(), dados.max(), 1000)
+    y_kde_scaled = kde(x_eval) * len(dados) * bin_width
+    
+    # Desenhar a linha de distribuição (KDE)
+    ax.plot(x_eval, y_kde_scaled, color="black", linewidth=2, label="Linha de Distribuição (KDE)")
+    
+    # 3. Pintar a laranja e etiquetar as barras que ultrapassam a linha KDE
+    valores_detetados = []
+    perfil_contador = 1  # Inicializar o contador de perfis (P1, P2, ...)
+    
+    # Calcular um pequeno offset vertical dinâmico (1% da altura máxima do gráfico) 
+    # para o texto não ficar colado à linha superior da barra
+    offset_y = max(n_counts) * 0.015
+    
+    for i in range(len(patches)):
+        # Encontrar o ponto médio do bin atual no eixo X
+        bin_centro = (bins[i] + bins[i+1]) / 2
+        # Calcular a altura da linha KDE exatamente nesse ponto médio
+        kde_altura_no_ponto = np.interp(bin_centro, x_eval, y_kde_scaled)
+        
+        # Se a barra real for maior que a estimativa teórica do KDE, destaca a laranja
+        if n_counts[i] > kde_altura_no_ponto:
+            patches[i].set_facecolor("tab:orange")
+            patches[i].set_alpha(0.8)
+            
+            # -----------------------------------------------------------------
+            # ADICIONAR RÓTULO ADICIONAL (P1, P2, ... PN) ACIMA DA BARRA
+            # -----------------------------------------------------------------
+            ax.text(
+                x=bin_centro,                      # Centrado na barra
+                y=n_counts[i] + offset_y,          # Ligeiramente acima do topo da barra
+                s=f"P{perfil_contador}",           # Texto (P1, P2, etc.)
+                ha='center',                       # Alinhamento horizontal ao centro
+                va='bottom',                       # Alinhamento vertical por baixo do texto
+                fontsize=9,                        # Tamanho de letra legível para o relatório
+                fontweight='bold',                 # Negrito para dar destaque
+                color='darkred'                    # Cor contrastante para sobressair no fundo azul/laranja
+            )
+            
+            # Guardamos o intervalo de valores desta barra
+            valores_detetados.append((bins[i], bins[i+1], n_counts[i]))
+            perfil_contador += 1  # Incrementar para o próximo perfil detetado
+            
+    # 4. Customização e Gravação
+    ax.set_title("Graph 80A: Identificação de Concentrações Acima da Distribuição Base", fontsize=13)
+    ax.set_xlabel("UPAC por 1000 habitantes")
+    ax.set_ylabel("Frequência")
+    
+    # Ajustar dinamicamente o limite superior do eixo Y para os textos do topo não serem cortados
+    ax.set_ylim(0, max(n_counts) * 1.08)
+    ax.legend()
+    
+    path = os.path.join(folder_path, "80A_distribuicao_upac_destaque_perfis.png")
+    guardar_grafico(path)
+    
+    # Print no terminal atualizado para bater com os rótulos do gráfico
+    print("\n🎯 [Valores Identificados] As seguintes janelas ultrapassam a linha teórica:")
+    print(f"{'ID':<4} | {'Intervalo (Min - Max)':<30} | {'Nº Concelhos Nesta Barra':<25}")
+    print("-" * 65)
+    for idx, (inf, sup, qtd) in enumerate(valores_detetados):
+        print(f"P{idx+1:<3} | [{inf:.2f} a {sup:.2f}] UPAC/1000 hab.   | {int(qtd)} concelhos")
+        
+    return valores_detetados
+# =========================
+# 100. ANÁLISE MULTI-VARIÁVEL AUTOMATIZADA PARA N PERFIS ISOLADOS
+# =========================
+def graph_100(folder_path=OUTPUT_DIR, valores_analise_tuple=None):
+    def graph_por_perfil(folder_path=OUTPUT_DIR, valores_analise_tuple=None):
+        """
+        Receita a lista de tuplos gerada dinamicamente pela função graph_80A().
+        Gera um ficheiro de diagnóstico independente (6 subplots) para cada perfil.
+        """
+        if valores_analise_tuple is None or len(valores_analise_tuple) == 0:
+            print("⚠️ Nenhuns valores passados para análise no Graph 100.")
+            return
+
+        print(f"\n🔄 A iniciar Graph 100: Processamento em lote para {len(valores_analise_tuple)} perfis independentes...")
+        
+        # Correr cada barra/perfil de forma isolada
+        for idx, barra in enumerate(valores_analise_tuple):
+            limite_inf = barra[0]
+            limite_sup = barra[1]
+            contagem_concelhos = barra[2]
+            
+            # 1. Isolar os concelhos desta barra específica
+            condicao_perfil = (base_demo["UPAC por 1000 habitantes"] >= limite_inf) & \
+                            (base_demo["UPAC por 1000 habitantes"] <= limite_sup)
+                            
+            concelhos_alvo = base_demo[condicao_perfil]["Concelho"].unique()
+            
+            # Salvaguarda caso a barra represente um bin vazio ou sem correspondência exata
+            if len(concelhos_alvo) == 0:
+                continue
+                
+            print(f"   -> Perfil {idx+1}: A processar {len(concelhos_alvo)} concelhos no intervalo [{limite_inf:.2f} a {limite_sup:.2f}]")
+            
+            # 2. Filtrar os DataFrames apenas para o grupo deste perfil
+            df_demo_alvo = base_demo[base_demo["Concelho"].isin(concelhos_alvo)].copy()
+            df_energia_alvo = energia_escalao[energia_escalao["Concelho"].isin(concelhos_alvo)].copy()
+            
+            # ========================================================
+            # 3. CONSTRUÇÃO DA MATRIZ DE SUBPLOTS PARA O PERFIL ATUAL
+            # ========================================================
+            fig, axes = plt.subplots(2, 3, figsize=(18, 11))
+            
+            # Título dinâmico identificando o intervalo exato do perfil
+            fig.suptitle(
+                f"Graph 100 (Perfil {idx+1}): Diagnóstico do Intervalo [{limite_inf:.2f} a {limite_sup:.2f}] UPAC/1000 hab.\n"
+                f"Grupo composto por {len(concelhos_alvo)} Concelhos", 
+                fontsize=15, fontweight='bold'
+            )
+            
+            # Painel 1: Distribuição da Densidade Populacional
+            sns.boxplot(data=df_demo_alvo, y="Densidade populacional", ax=axes[0, 0], color="orange")
+            axes[0, 0].set_title("A. Perfil de Densidade Populacional")
+            axes[0, 0].set_ylabel("Habitantes / km²")
+            
+            # Painel 2: Volume Absoluto de Instalações (UPACs)
+            sns.barplot(data=df_energia_alvo, x="Escalão médio de potência", y="Número de Instalações", ax=axes[0, 1], estimator=np.sum, errorbar=None, palette="Blues_d")
+            axes[0, 1].set_title("B. Total de UPACs Ativas por Escalão")
+            axes[0, 1].set_xticklabels(axes[0, 1].get_xticklabels(), rotation=30)
+            
+            # Painel 3: Potência Total Instalada (kW)
+            sns.barplot(data=df_energia_alvo, x="Escalão médio de potência", y="Potência Instalada (kW)", ax=axes[0, 2], estimator=np.sum, errorbar=None, palette="Purples_d")
+            axes[0, 2].set_title("C. Capacidade de Potência Total (kW)")
+            axes[0, 2].set_xticklabels(axes[0, 2].get_xticklabels(), rotation=30)
+            
+            # Painel 4: Injeção Bruta na Rede
+            if "Energia Injetada (kWh)" in df_energia_alvo.columns:
+                sns.lineplot(data=df_energia_alvo, x="Mês", y="Energia Injetada (kWh)", hue="Escalão médio de potência", ax=axes[1, 0], marker="o", errorbar=None)
+                axes[1, 0].set_title("D. Curva Mensal de Injeção Absoluta")
+            else:
+                axes[1, 0].text(0.5, 0.5, "Coluna 'Energia Injetada (kWh)'\nnão encontrada", ha='center', va='center')
+                axes[1, 0].set_title("D. Curva Mensal de Injeção Absoluta")
+                
+            # Painel 5: Rendimento / Excedente Relativo
+            sns.boxplot(data=df_energia_alvo, x="Escalão médio de potência", y="kWh por kW instalado", ax=axes[1, 1], palette="Set2")
+            axes[1, 1].set_title("E. Distribuição do Excedente Relativo")
+            axes[1, 1].set_ylabel("kWh por kW instalado")
+            axes[1, 1].set_xticklabels(axes[1, 1].get_xticklabels(), rotation=30)
+            
+            # Painel 6: Comportamento Temporal do Excedente
+            sns.lineplot(data=df_energia_alvo, x="Mês", y="kWh por kW instalado", hue="Escalão médio de potência", ax=axes[1, 2], marker="s", errorbar=None)
+            axes[1, 2].set_title("F. Sazonalidade do Excedente Relativo")
+            
+            plt.tight_layout()
+            
+            # 4. Gravar cada gráfico com um nome de ficheiro único baseado no índice do perfil
+            nome_ficheiro = f"100_diagnostico_perfil_{idx+1}_intervalo_{int(limite_inf)}_{int(limite_sup)}.png"
+            path = os.path.join(folder_path, nome_ficheiro)
+            guardar_grafico(path)
+            
+            # Fechar a figura explicitamente para libertar a memória RAM do computador durante o loop
+            plt.close(fig)
+            
+            print(f"\n✅ Análise para o perfil {idx+1} de {len(valores_analise_tuple)} concluída com sucesso! Foram gerados os gráficos individuais na pasta output.")
+
+    folder100 = os.path.join(folder_path, "graph_100")
+
+    graph_por_perfil(folder100, valores_analise_tuple)
+    print("✅ Graph 100 processado para todos os perfis identificados!")
 
 def main():
     clean_test_folder(OUTPUT_DIR)
-    for func in globals():
-        if func.startswith("graph_") and callable(globals()[func]):
-            print(f"Criando gráfico: {func}...")
-            globals()[func]()
+    # graph_98()
+    # graph_99()
+    # vals = graph_80A()
+    # print(vals)
+    # graph_100(valores_analise_tuple=vals)
+    # graph_51_escalao()
+    graph_51_escalao_anual()
+    print(energia_escalao.head())
+    # for func in globals():
+    #     if func.startswith("graph_") and callable(globals()[func]):
+    #         print(f"Criando gráfico: {func}...")
+    #         globals()[func]()
     print("Gráficos criados com sucesso em:", OUTPUT_DIR)
     return 0
 

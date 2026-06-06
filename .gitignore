@@ -100,3 +100,5 @@ __pycache__/
 graficos/principais/*
 !graficos/principais/test
 graficos/principais/test/*
+graficos/output/*
+graficos/output_test/*
