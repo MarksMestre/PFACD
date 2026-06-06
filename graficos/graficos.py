@@ -63,9 +63,10 @@ def guardar_grafico(nome="grafico", path=None):
 
     if path is None:
         path = os.path.join(OUTPUT_DIR, nome)
+        dir = os.path.dirname(path)
     else:
         dir = os.path.dirname(path)
-        os.makedirs(dir, exist_ok=True)
+    os.makedirs(dir, exist_ok=True)
 
     plt.tight_layout()
     plt.savefig(path, dpi=300, bbox_inches="tight")
@@ -4064,13 +4065,118 @@ def graph_95():
     graph_95E(graph_95_dir)
 
 
+def graph_96():
+
+    folder_96 = os.path.join(OUTPUT_DIR, "graph_96")
+        
+    def graph_por_escalao(folder_path, escalao_nome="]0, 4]"):
+        print(f"\n🔄 A preparar dados para o Graph 96 (Correlação: Nº de UPACs vs. Excedente) — Escalão {escalao_nome}...")
+        
+        # 1. Isolar o escalão escolhido
+        df_linhas = energia_escalao[energia_escalao["Escalão médio de potência"] == escalao_nome].copy()
+        
+        if df_linhas.empty:
+            print(f"⚠️ Sem observações suficientes para o escalão {escalao_nome}")
+            return
+        
+        # 2. Configurar o visual
+        plt.figure(figsize=(12, 6))
+        
+        # Scatter plot com linha de regressão linear global
+        sns.regplot(
+            data=df_linhas,
+            x="Número de Instalações",
+            y="kWh por kW instalado",
+            scatter_kws={"alpha": 0.3, "s": 12, "color": "tab:blue"},
+            line_kws={"color": "tab:red", "linewidth": 2.5, "label": "Tendência de Correlação"}
+        )
+        
+        # Calcular o coeficiente de correlação de Pearson de forma dinâmica
+        correlacao = df_linhas["Número de Instalações"].corr(df_linhas["kWh por kW instalado"])
+        
+        # 3. Customização do gráfico
+        plt.title(f"Graph 96: Avaliação de Correlação (Nº de UPACs vs. Excedente Relativo)\nEscalão {escalao_nome} (Pearson r: {correlacao:.2f})", fontsize=13)
+        plt.xlabel("Número de Instalações (UPACs) por Observação")
+        plt.ylabel("Excedente de Energia (kWh por kW instalado)")
+        plt.legend(loc="upper right")
+        
+        # Gravação segura usando o teu sufixo padrão
+        sufixo = escalao_nome.replace("]", "").replace("[", "").replace(",", "_").replace(" ", "").replace(">", "+")
+        path = os.path.join(folder_path, f"graph_96_correlacao_upacs_{sufixo}.png")
+        guardar_grafico(nome=f"graph_96_correlacao_upacs_{sufixo}.png", path=path)
+        print(f"✅ Graph 96 para escalao {escalao_nome} guardado ")
+
+    for escalao in energia_escalao["Escalão médio de potência"].unique():
+        graph_por_escalao(folder_96, escalao)
+    
+
+def graph_97():
+
+    folder_97 = os.path.join(OUTPUT_DIR, "graph_97")
+
+    def graph_por_escalao(folder_path, escalao_nome="]0, 4]"):
+        print(f"\n🔄 A preparar dados para o Graph 97 (Série Temporal Dual) — Escalão {escalao_nome}...")
+        
+        # 1. Isolar o escalão escolhido
+        df_linhas = energia_escalao[energia_escalao["Escalão médio de potência"] == escalao_nome].copy()
+        
+        if df_linhas.empty:
+            print(f"⚠️ Sem observações suficientes para o escalão {escalao_nome}")
+            return
+        
+        # 2. Agrupar por 'Data' para ver o comportamento macro/nacional do escalão ao longo dos meses/anos
+        df_tempo = df_linhas.groupby("Data").agg({
+            "Número de Instalações": "sum",          # Volume total de UPACs ativas naquele período temporal
+            "kWh por kW instalado": "mean"           # Comportamento médio do excedente relativo
+        }).reset_index().sort_values("Data")
+        
+        # 3. Construção do gráfico de Duplo Eixo (Dual Axis)
+        fig, ax1 = plt.subplots(figsize=(14, 6))
+        
+        # EIXO 1 (Esquerdo, Azul): Crescimento de UPACs ao longo do tempo
+        color_upacs = 'tab:blue'
+        ax1.plot(
+            df_tempo["Data"], df_tempo["Número de Instalações"], 
+            marker="o", color=color_upacs, linewidth=2.5, label="Nº Total de UPACs (Crescimento)"
+        )
+        ax1.set_xlabel("Linha Temporal (Meses / Anos)")
+        ax1.set_ylabel("Capacidade Instalada Total (Número de UPACs)", color=color_upacs, fontsize=11)
+        ax1.tick_params(axis='y', labelcolor=color_upacs)
+        ax1.grid(True, alpha=0.3)
+        
+        # EIXO 2 (Direito, Laranja): Flutuação do Excedente Relativo
+        ax2 = ax1.twinx()
+        color_excedente = 'tab:orange'
+        ax2.plot(
+            df_tempo["Data"], df_tempo["kWh por kW instalado"], 
+            marker="s", linestyle="--", color=color_excedente, linewidth=2, label="Excedente Médio (kWh/kW)"
+        )
+        ax2.set_ylabel("Excedente Relativo Médio (kWh por kW instalado)", color=color_excedente, fontsize=11)
+        ax2.tick_params(axis='y', labelcolor=color_excedente)
+        
+        # 4. Ajustes finais e união das legendas de ambos os eixos
+        plt.title(f"Graph 97: Impacto do Crescimento de UPACs na Injeção de Excedentes\nEvolução Temporal no Escalão {escalao_nome}", fontsize=13)
+        
+        lines_1, labels_1 = ax1.get_legend_handles_labels()
+        lines_2, labels_2 = ax2.get_legend_handles_labels()
+        ax1.legend(lines_1 + lines_2, labels_1 + labels_2, loc="upper left")
+        
+        sufixo = escalao_nome.replace("]", "").replace("[", "").replace(",", "_").replace(" ", "").replace(">", "+")
+        path = os.path.join(folder_path, f"graph_97_serie_temporal_{sufixo}.png")
+        guardar_grafico(nome=f"graph_97_serie_temporal_{sufixo}.png", path=path)
+        print(f"✅ Graph 97 para escalao {escalao_nome} guardado com sucesso!")
+
+    for escalao in energia_escalao["Escalão médio de potência"].unique():
+        graph_por_escalao(folder_97, escalao)
+
+
+
 def main():
     clean_test_folder(OUTPUT_DIR)
-    graph_95()
-    # for func in globals():
-    #     if func.startswith("graph_") and callable(globals()[func]):
-    #         print(f"Criando gráfico: {func}...")
-    #         globals()[func]()
+    for func in globals():
+        if func.startswith("graph_") and callable(globals()[func]):
+            print(f"Criando gráfico: {func}...")
+            globals()[func]()
     print("Gráficos criados com sucesso em:", OUTPUT_DIR)
     return 0
 
