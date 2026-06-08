@@ -556,10 +556,13 @@ def prepare_for_ml(df_weight):
         "pop_lag_1","weight_lag_1","pop_lag_2","weight_lag_2","pop_lag_3","weight_lag_3","pop_lag_4","weight_lag_4",
         "growth_rate","acceleration",
         "mun_growth_lag_1","relative_to_nuts_growth_lag_1","mun_growth_lag_2","relative_to_nuts_growth_lag_2","mun_growth_lag_3","relative_to_nuts_growth_lag_3",
-        "stability_score","stability_score_norm","nuts_total_lag_1","nuts_total_lag_2","nuts_total_lag_3","is_census","avg_growth_since_2013", "target_pop"
+        "stability_score","stability_score_norm","nuts_total_lag_1","nuts_total_lag_2","nuts_total_lag_3",
+        "is_census","avg_growth_since_2013", "target_pop"
     ]
 
     df_ml = df_ml[cols].copy()
+
+
     
     return df_ml
 
@@ -613,8 +616,8 @@ def main():
 
     print(df_weight.head())
     df_ml = prepare_for_ml(df_weight=df_weight)
+
     df_ml.to_csv(POP_ML_DATA_CSV, sep=",", index=False)
-    
 
 if __name__ == "__main__":
     try:

@@ -33,7 +33,7 @@ def train_and_predict_population_cv(df_ml, model):
     Pipeline com TimeSeriesSplit para validar a robustez temporal.
     """
     # 1. Definir colunas
-    drop_cols = ['target_pop', 'territory_code', 'Ano', 'NUTS3', "NUTS3_Name", "Name"]
+    drop_cols = ['target_pop', 'territory_code', 'Ano', 'NUTS3', "NUTS3_Name", "Name", "growth_rate"]
     features = [col for col in df_ml.columns if col not in drop_cols]
     
     # 2. Preparar dados (Ordenados por Ano para CV temporal)
@@ -85,6 +85,8 @@ def prepare_2025_dataset(df_ml, df_data):
     df_2024 = df_ml[df_ml['Ano'] == 2024].copy()
 
     cols = df_2024.columns
+    cols = cols.drop("growth_rate")
+    print(cols)
     
     df_2025 = df_2024.copy()
     df_2025['Ano'] = 2025
@@ -345,7 +347,10 @@ def main():
         data_df=df_data
     )
 
+    
     final_result.to_csv(POP_PREDICTION_OUTPUT, sep=",", index=True)
+    # final_result.to_csv(test_path, sep=",", index=True)
+    
 
 if __name__ == "__main__":
     try:
