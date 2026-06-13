@@ -9,6 +9,13 @@ import sys
 import numpy as np
 from clean_princ_test_folder import main as clean_test_folder
 
+import warnings
+
+# Dar "abafo" a avisos de atualizações futuras (Seaborn/Pandas)
+warnings.filterwarnings("ignore", category=FutureWarning)
+# Dar "abafo" a avisos de tratamento de ticks de eixos (Matplotlib)
+warnings.filterwarnings("ignore", category=UserWarning)
+
 # =========================
 # CONFIGURAÇÕES DE DIRETÓRIOS
 # =========================
@@ -48,7 +55,7 @@ PATH_PRECOS = os.path.join(
     "portugal_2018-2025_kW.csv"
 )
 
-OUTPUT_DIR = os.path.join(BASE_DIR, "graficos", "output_test")
+OUTPUT_DIR = os.path.join(BASE_DIR, "graficos", "output")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 sns.set_theme(style="whitegrid")
@@ -4403,28 +4410,33 @@ def graph_80A(folder_path=OUTPUT_DIR):
     print("-" * 65)
     for idx, (inf, sup, qtd) in enumerate(valores_detetados):
         print(f"P{idx+1:<3} | [{inf:.2f} a {sup:.2f}] UPAC/1000 hab.   | {int(qtd)} concelhos")
+
+    perfis = {}
+    for i, val in enumerate(valores_detetados):
+        perfis[i+1] = val
         
-    return valores_detetados
+    return perfis
+
 # =========================
 # 100. ANÁLISE MULTI-VARIÁVEL AUTOMATIZADA PARA N PERFIS ISOLADOS
 # =========================
-def graph_100(folder_path=OUTPUT_DIR, valores_analise_tuple=None):
-    def graph_por_perfil(folder_path=OUTPUT_DIR, valores_analise_tuple=None):
+def graph_100(folder_path=OUTPUT_DIR, perfis=None):
+    def graph_por_perfil(folder_path=OUTPUT_DIR, perfis=None):
         """
         Receita a lista de tuplos gerada dinamicamente pela função graph_80A().
         Gera um ficheiro de diagnóstico independente (6 subplots) para cada perfil.
         """
-        if valores_analise_tuple is None or len(valores_analise_tuple) == 0:
+        if perfis is None or len(perfis) == 0:
             print("⚠️ Nenhuns valores passados para análise no Graph 100.")
             return
 
-        print(f"\n🔄 A iniciar Graph 100: Processamento em lote para {len(valores_analise_tuple)} perfis independentes...")
+        print(f"\n🔄 A iniciar Graph 100: Processamento em lote para {len(perfis)} perfis independentes...")
         
         # Correr cada barra/perfil de forma isolada
-        for idx, barra in enumerate(valores_analise_tuple):
+        for idx, barra in perfis.items():
             limite_inf = barra[0]
             limite_sup = barra[1]
-            contagem_concelhos = barra[2]
+            
             
             # 1. Isolar os concelhos desta barra específica
             condicao_perfil = (base_demo["UPAC por 1000 habitantes"] >= limite_inf) & \
@@ -4449,7 +4461,7 @@ def graph_100(folder_path=OUTPUT_DIR, valores_analise_tuple=None):
             
             # Título dinâmico identificando o intervalo exato do perfil
             fig.suptitle(
-                f"Graph 100 (Perfil {idx+1}): Diagnóstico do Intervalo [{limite_inf:.2f} a {limite_sup:.2f}] UPAC/1000 hab.\n"
+                f"Graph 100 (Perfil {idx}): Diagnóstico do Intervalo [{limite_inf:.2f} a {limite_sup:.2f}] UPAC/1000 hab.\n"
                 f"Grupo composto por {len(concelhos_alvo)} Concelhos", 
                 fontsize=15, fontweight='bold'
             )
@@ -4490,34 +4502,190 @@ def graph_100(folder_path=OUTPUT_DIR, valores_analise_tuple=None):
             plt.tight_layout()
             
             # 4. Gravar cada gráfico com um nome de ficheiro único baseado no índice do perfil
-            nome_ficheiro = f"100_diagnostico_perfil_{idx+1}_intervalo_{int(limite_inf)}_{int(limite_sup)}.png"
+            nome_ficheiro = f"100_diagnostico_perfil_{idx}_intervalo_{int(limite_inf)}_{int(limite_sup)}.png"
             path = os.path.join(folder_path, nome_ficheiro)
             guardar_grafico(path)
             
             # Fechar a figura explicitamente para libertar a memória RAM do computador durante o loop
             plt.close(fig)
             
-            print(f"\n✅ Análise para o perfil {idx+1} de {len(valores_analise_tuple)} concluída com sucesso! Foram gerados os gráficos individuais na pasta output.")
+            print(f"\n✅ Análise para o perfil {idx} de {len(perfis)} concluída com sucesso! Foram gerados os gráficos individuais na pasta output.")
 
     folder100 = os.path.join(folder_path, "graph_100")
 
-    graph_por_perfil(folder100, valores_analise_tuple)
+    graph_por_perfil(folder100, perfis)
     print("✅ Graph 100 processado para todos os perfis identificados!")
+
+
+# =========================================================================
+# 100_CONJUNTOS. ANÁLISE COMPARATIVA DAS CAUDAS E MASSA CENTRAL (SEM PICOS MÁXIMOS)
+# =========================================================================
+def graph_100_conjuntos(folder_path=OUTPUT_DIR, valores_analise_tuple=None):
+    """
+    Agrupa as anomalias secundárias e caudas em C1, C2 e C3 para análise de conjunto.
+    Os picos máximos (P9, P10, P11) são excluídos desta agregação para evitar 
+    o enviesamento das escalas devido à sua frequência massiva.
+    """
+    if valores_analise_tuple is None or len(valores_analise_tuple) == 0:
+        print("⚠️ Forneça os valores identificados pelo Graph 80A.")
+        return
+
+    print("\n📦 A iniciar Graph 100_Conjuntos (Abordagem Não Enviesada para Caudas)...")
+    
+    # 1. Criar o mapeamento de cada Concelho para o seu perfil P1-P14
+    concelho_to_perfil = {}
+    for idx, barra in enumerate(valores_analise_tuple):
+        p_name = f"P{idx+1}"
+        limite_inf = barra[0]
+        limite_sup = barra[1]
+        
+        cond_p = (base_demo["UPAC por 1000 habitantes"] >= limite_inf) & \
+                 (base_demo["UPAC por 1000 habitantes"] <= limite_sup)
+                 
+        concelhos_na_barra = base_demo[cond_p]["Concelho"].unique()
+        for c in concelhos_na_barra:
+            concelho_to_perfil[c] = p_name
+
+    # 2. Mapeamento estrito focado APENAS em C1, C2 e C3 (Exclui P9-P11)
+    def atribuir_macro_caudas(concelho):
+        p = concelho_to_perfil.get(concelho, None)
+        if not p: return None
+        
+        num_p = int(p.replace("P", ""))
+        if 1 <= num_p <= 4:
+            return "C1: Cauda Negativa (P1-P4)"
+        elif 5 <= num_p <= 8:
+            return "C2: Centro de Baixo Excedente (P5-P8)"
+        elif 12 <= num_p <= 14:
+            return "C3: Cauda Positiva / Ultra Penetração (P12-P14)"
+        
+        # P9, P10 e P11 retornam None e ficam fora desta análise agregada
+        return None
+
+    # 3. Filtrar e aplicar as etiquetas de macro-conjuntos
+    concelhos_estudados = list(concelho_to_perfil.keys())
+    df_demo_grup = base_demo[base_demo["Concelho"].isin(concelhos_estudados)].copy()
+    df_ener_grup = energia_escalao[energia_escalao["Concelho"].isin(concelhos_estudados)].copy()
+    
+    df_demo_grup["Macro_Conjunto"] = df_demo_grup["Concelho"].apply(atribuir_macro_caudas)
+    df_ener_grup["Macro_Conjunto"] = df_ener_grup["Concelho"].apply(atribuir_macro_caudas)
+    
+    # Eliminar do dataset os picos máximos (P9-P11) e concelhos sem perfil
+    df_demo_grup = df_demo_grup.dropna(subset=["Macro_Conjunto"])
+    df_ener_grup = df_ener_grup.dropna(subset=["Macro_Conjunto"])
+    
+    ordem_grupos = [
+        "C1: Cauda Negativa (P1-P4)", 
+        "C2: Centro de Baixo Excedente (P5-P8)", 
+        "C3: Cauda Positiva / Ultra Penetração (P12-P14)"
+    ]
+
+    if df_demo_grup.empty:
+        print("⚠️ Sem dados suficientes para gerar os macro-conjuntos das caudas.")
+        return
+
+    # =========================================================================
+    # 4. MATRIZ GRÁFICA DE DIAGNÓSTICO (Reduzida para 4 subplots focados e limpos)
+    # =========================================================================
+    fig, axes = plt.subplots(2, 2, figsize=(15, 11))
+    fig.suptitle(
+        "Diagnóstico Comparativo das Caudas de Distribuição (Abordagem Sem Viés)\n"
+        "Os Picos Máximos Centrais (P9-P11) foram isolados para análise individual", 
+        fontsize=15, fontweight='bold'
+    )
+    
+    # Painel A: Densidade Populacional (Média)
+    sns.boxplot(
+        data=df_demo_grup, x="Macro_Conjunto", y="Densidade populacional", 
+        order=ordem_grupos, palette="Set2", ax=axes[0, 0]
+    )
+    axes[0, 0].set_title("A. Perfil Demográfico (Densidade Populacional)")
+    axes[0, 0].set_ylabel("Habitantes / km²")
+    axes[0, 0].set_xlabel("")
+    axes[0, 0].tick_params(axis='x', rotation=15)
+    
+    # Painel B: Volume de Instalações Acumulado (Soma)
+    sns.barplot(
+        data=df_ener_grup, x="Macro_Conjunto", y="Número de Instalações", 
+        order=ordem_grupos, estimator=np.sum, errorbar=None, palette="Blues_d", ax=axes[0, 1]
+    )
+    axes[0, 1].set_title("B. Volume Estrutural (Soma Total de UPACs)")
+    axes[0, 1].set_ylabel("Total de Instalações")
+    axes[0, 1].set_xlabel("")
+    axes[0, 1].tick_params(axis='x', rotation=15)
+    
+    # Painel C: Potência Instalada Total Acumulada (Soma)
+    sns.barplot(
+        data=df_ener_grup, x="Macro_Conjunto", y="Potência Instalada (kW)", 
+        order=ordem_grupos, estimator=np.sum, errorbar=None, palette="Purples_d", ax=axes[1, 0]
+    )
+    axes[1, 0].set_title("C. Capacidade Energética (Soma Total de Potência em kW)")
+    axes[1, 0].set_ylabel("Potência Total (kW)")
+    axes[1, 0].set_xlabel("")
+    axes[1, 0].tick_params(axis='x', rotation=15)
+    
+    # Painel D: Eficiência do Excedente Relativo (Média/Distribuição)
+    sns.boxplot(
+        data=df_ener_grup, x="Macro_Conjunto", y="kWh por kW instalado", 
+        order=ordem_grupos, palette="Pastel1", ax=axes[1, 1]
+    )
+    axes[1, 1].set_title("D. Índice de Eficiência (Excedente Relativo Médio)")
+    axes[1, 1].set_ylabel("kWh por kW instalado")
+    axes[1, 1].set_xlabel("")
+    axes[1, 1].tick_params(axis='x', rotation=15)
+    
+    plt.tight_layout()
+    
+    folder_grupos = os.path.join(folder_path, "graph_100_macro_conjuntos")
+    os.makedirs(folder_grupos, exist_ok=True)
+    path = os.path.join(folder_grupos, "100_analise_caudas_sem_vies.png")
+    guardar_grafico(path)
+    plt.close(fig)
+    
+    print(f"✅ Painel de caudas não enviesado gerado em: '{path}'")
+
 
 def main():
     clean_test_folder(OUTPUT_DIR)
-    # graph_98()
-    # graph_99()
-    # vals = graph_80A()
-    # print(vals)
-    # graph_100(valores_analise_tuple=vals)
-    # graph_51_escalao()
-    graph_51_escalao_anual()
-    print(energia_escalao.head())
-    # for func in globals():
-    #     if func.startswith("graph_") and callable(globals()[func]):
-    #         print(f"Criando gráfico: {func}...")
-    #         globals()[func]()
+
+    func_excl = ["80A", "100", "100_conjuntos"]
+    for i, func in enumerate(func_excl):
+        func = "graph_" + func
+        func_excl[i] = func
+
+    for func in globals():
+        if func in func_excl: continue
+        elif func.startswith("graph_") and callable(globals()[func]):
+            print(f"Criando gráfico: {func}...")
+            globals()[func]()
+
+    print("\n--------------------------------------------------")
+    print("🎯 Fase Base Concluída. A iniciar Análise de Perfis Avançada...")
+    print("--------------------------------------------------")
+    
+    # 3. Executar a sequência analítica correta e controlada no fim
+    
+    # Passo A: Corre o histograma, gera a imagem P1-P14 e extrai os tuplos das barras
+    perfis = graph_80A(OUTPUT_DIR)
+    vals = list(perfis.values())
+
+    # Passo B: Gera a análise macro comparativa unindo as caudas em C1, C2 e C3 (sem viés)
+    graph_100_conjuntos(OUTPUT_DIR, valores_analise_tuple=vals)
+    
+    # Passo C: Isola exclusivamente os picos máximos (P9, P10 e P11) para auditoria individual
+    # Nota: Em Python, os índices 8, 9 e 10 correspondem ao 9º, 10º e 11º elemento (P9, P10, P11)
+    if len(vals) >= 11:
+        perfis_max = dict([
+            (9, perfis[9]), 
+            (10, perfis[10]), 
+            (11, perfis[11])
+        ])
+        print("\n🔎 A focar inspeção detalhada individual nos picos máximos (P9, P10, P11)...")
+        graph_100(OUTPUT_DIR, perfis=perfis_max)
+    else:
+        print("\n⚠️ Alerta: Menos de 11 perfis detetados. A correr o graph_100 para todas as barras.")
+        graph_100(OUTPUT_DIR, perfis=perfis)
+        
     print("Gráficos criados com sucesso em:", OUTPUT_DIR)
     return 0
 
