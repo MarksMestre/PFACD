@@ -26,7 +26,7 @@ while project_root and project_root != os.path.dirname(project_root):
 if project_root not in sys.path:
     sys.path.append(project_root)
 
-# Now your import will work perfectly
+# Now import will work perfectly
 from __configure__.paths import *
 df = pd.read_csv("energia_injectada_upac.csv", sep=";")
 

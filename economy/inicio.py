@@ -245,7 +245,7 @@ def predict_portugal(model: Pipeline, portugal_name: str) -> pd.DataFrame:
     return future_df
 
 
-def run_solar_cost_model() -> None:
+def main() -> None:
     file_path = Path(__file__).resolve().parent / CSV_FILE
 
     if not file_path.exists():
@@ -287,4 +287,4 @@ def run_solar_cost_model() -> None:
 
 
 if __name__ == "__main__":
-    run_solar_cost_model()
+    main()
