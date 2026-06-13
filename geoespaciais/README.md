@@ -5,4 +5,4 @@ Os dados devem ser instalados para esta pasta.
 Para instalar as dependências, corre pip install -r requirements.txt
 Como correr os ficheiros:
 corre generateparq.py, depois geoespacial.py.
- 
+

@@ -10,9 +10,6 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder
 
 
-CSV_FILE = "15paises_14anos_kW.csv"
-
-
 def load_csv_flexibly(file_path: str) -> pd.DataFrame:
     """
     Tenta ler o CSV com diferentes separadores/comas decimais.
@@ -246,6 +243,7 @@ def predict_portugal(model: Pipeline, portugal_name: str) -> pd.DataFrame:
 
 
 def main() -> None:
+    CSV_FILE = "15paises_14anos_kW.csv"
     file_path = Path(__file__).resolve().parent / CSV_FILE
 
     if not file_path.exists():

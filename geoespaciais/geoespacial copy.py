@@ -20,7 +20,6 @@ def vector_map(geojson_directory):
     district_names_series = districts_gdf['name']
     return districts_gdf, portugal_geom, district_names_series
 
-
 def manipulate_raster_solar(solar_directory, portugal_geom):
     with rasterio.open(solar_directory) as src: #Ficheiro com dados de radiação solar médios(kWh)
         solar_meta = src.meta
@@ -33,6 +32,7 @@ def manipulate_raster_solar(solar_directory, portugal_geom):
         solar_shape = solar_array.shape
         print("Função Manipulate_raster_solar completada completada")
         return solar_shape, solar_transform, solar_array
+
 
 
 def manipulate_geojson_buildings(buildings_directory, solar_shape, solar_transform):
@@ -147,6 +147,16 @@ def calculate_and_save_potential(solar_array, building_mask, transform):
     return potential_energy
 
 
+
+
+
+districts_gdf, portugal_geom, district_names_series = vector_map("pt.json")
+solar_shape, solar_transform, solar_array = manipulate_raster_solar("PVOUT.tif", portugal_geom)
+print(f"DEBUG: Min={np.nanmin(solar_array)}, Max={np.nanmax(solar_array)}")
+buildings_gdf, building_mask = manipulate_geojson_buildings("portugal_mainland_buildings.parquet", solar_shape, solar_transform)
+potential_energy_array = calculate_and_save_potential(solar_array,building_mask, solar_transform)
+
+
 def radiation_map():
     fig, ax = plt.subplots(figsize=(7, 12))
 
@@ -163,6 +173,8 @@ def radiation_map():
     plt.show()
     plt.close()
     return
+
+
 
 
 def make_plot_raster_under_vectors(fractional_mask, solar_transform, buildings_gdf, x_zoom, y_zoom):
@@ -233,6 +245,17 @@ def plot_fractional_raster(mask_array, transform, solar_array, title, name):
     plt.savefig(name)
 
 
+
+
+
+# Call the functions
+
+radiation_map()
+plot_fractional_raster(building_mask, solar_transform, solar_array, "buildings", "buildings.png")
+plot_fractional_raster(potential_energy_array, solar_transform, solar_array, "Solar Potential: Land Only", "Solar potential.png")
+make_plot_raster_under_vectors(building_mask, solar_transform, buildings_gdf, [-9.18, -9.10], [38.70, 38.76])
+make_plot_raster_under_vectors(building_mask, solar_transform, buildings_gdf, [-9.7, -6.0], [36.8, 42.2])
+
 def sum_potential_by_district(potential_array, transform, districts_gdf):
     # 1. We must temporarily "wrap" the array as a raster dataset for masking
     # We'll use an in-memory dataset to keep it fast
@@ -281,8 +304,24 @@ def sum_potential_by_district(potential_array, transform, districts_gdf):
 
     return summary_df
 
+print(sum_potential_by_district(potential_energy_array, solar_transform, districts_gdf))
 
-# Esta função é para estimar energia aproveitada por kW em cada distrito, em média. varia bastante mas deve ser melhor do que as estações do ipma pois é mais abrangente
+summary_results = sum_potential_by_district(potential_energy_array, solar_transform, districts_gdf)
+total_national_kwh = summary_results['total_kWh'].sum()
+
+print(f"Total National Potential: {total_national_kwh:.2e} kWh")
+print(f"Total National Potential: {total_national_kwh / 1e9:.2f} TWh")
+
+
+
+
+
+
+
+
+
+
+#Esta função é para estimar energia aproveitada por kW em cada distrito, em média. varia bastante mas deve ser melhor do que as estações do ipma pois é mais abrangente
 def average_radiation_by_district(solar_array, transform, districts_gdf):
     from rasterio.io import MemoryFile
 
@@ -330,36 +369,8 @@ def average_radiation_by_district(solar_array, transform, districts_gdf):
     return result
 
 
-def main():
-    # Call the functions
 
-    districts_gdf, portugal_geom, district_names_series = vector_map("pt.json")
-    solar_shape, solar_transform, solar_array = manipulate_raster_solar("PVOUT.tif", portugal_geom)
-    print(f"DEBUG: Min={np.nanmin(solar_array)}, Max={np.nanmax(solar_array)}")
-    buildings_gdf, building_mask = manipulate_geojson_buildings("portugal_mainland_buildings.parquet", solar_shape, solar_transform)
-    potential_energy_array = calculate_and_save_potential(solar_array,building_mask, solar_transform)
+avg_solar_df = average_radiation_by_district(solar_array, solar_transform, districts_gdf)
 
-    radiation_map()
-    plot_fractional_raster(building_mask, solar_transform, solar_array, "buildings", "buildings.png")
-    plot_fractional_raster(potential_energy_array, solar_transform, solar_array, "Solar Potential: Land Only", "Solar potential.png")
-    make_plot_raster_under_vectors(building_mask, solar_transform, buildings_gdf, [-9.18, -9.10], [38.70, 38.76])
-    make_plot_raster_under_vectors(building_mask, solar_transform, buildings_gdf, [-9.7, -6.0], [36.8, 42.2])
-
-    print(sum_potential_by_district(potential_energy_array, solar_transform, districts_gdf))
-
-    summary_results = sum_potential_by_district(potential_energy_array, solar_transform, districts_gdf)
-    total_national_kwh = summary_results['total_kWh'].sum()
-
-    print(f"Total National Potential: {total_national_kwh:.2e} kWh")
-    print(f"Total National Potential: {total_national_kwh / 1e9:.2f} TWh")
-
-    avg_solar_df = average_radiation_by_district(solar_array, solar_transform, districts_gdf)
-
-    print("--- Average Solar Radiation by District (kWh/m²/year) ---")
-    print(avg_solar_df.to_string(index=False))
-
-    return 0
-
-
-if __name__ == "__main__":
-    main()
+print("--- Average Solar Radiation by District (kWh/m²/year) ---")
+print(avg_solar_df.to_string(index=False))

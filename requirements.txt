@@ -9,3 +9,4 @@ matplotlib
 seaborn
 meteostat
 folium
+geopandas
