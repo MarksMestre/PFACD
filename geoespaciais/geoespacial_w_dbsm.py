@@ -2,7 +2,6 @@ import geopandas as gpd
 import matplotlib.pyplot as plt
 import sqlite3
 import pandas as pd
-from dask.dataframe import to_csv
 
 
 def vector_map(geojson_directory):

@@ -6,94 +6,135 @@ Este repositório contém o ecossistema de dados desenvolvido para o projeto "Ca
 
 ## Estrutura do Projeto
 
-
-```text
-📦PFACD
- ┣ 📂demography
- ┃ ┣ 📂population_density
- ┃ ┃ ┣ 📜population_density.csv
- ┃ ┃ ┗ 📜__init__.py
- ┃ ┣ 📂population_total
- ┃ ┃ ┣ 📂data
- ┃ ┃ ┃ ┣ 📜ml_data.csv
- ┃ ┃ ┃ ┣ 📜populacao_com_previsao_2025.csv
- ┃ ┃ ┃ ┣ 📜populacao_total.csv
- ┃ ┃ ┃ ┣ 📜populacao_total_nuts2021.csv
- ┃ ┃ ┃ ┣ 📜populacao_total_nuts2024.csv
- ┃ ┃ ┃ ┣ 📜populacao_total_weights.csv
- ┃ ┃ ┃ ┣ 📜prediction.csv
- ┃ ┃ ┃ ┗ 📜previsao_oficial_2025.csv
- ┃ ┃ ┣ 📜data_preparation.py
- ┃ ┃ ┣ 📜main.py
- ┃ ┃ ┣ 📜prediction_and_validation.py
- ┃ ┃ ┣ 📜results_visualization.py
- ┃ ┃ ┗ 📜__init__.py
- ┃ ┣ 📜main.py
- ┃ ┗ 📜__init__.py
- ┣ 📂meteorology
- ┃ ┣ 📂CAMS
- ┃ ┃ ┣ 📂1day
- ┃ ┃ ┃ ┣ 📂processed_data
- ┃ ┃ ┃ ┣ 📂raw_data
- ┃ ┃ ┣ 📂1month
- ┃ ┃ ┃ ┣ 📂processed_data
- ┃ ┃ ┃ ┣ 📂raw_data
- ┃ ┃ ┣ 📂data_final
- ┃ ┃ ┃ ┣ 📜merged_1day_month.csv
- ┃ ┃ ┃ ┣ 📜merged_1day_semester.csv
- ┃ ┃ ┃ ┗ 📜merged_1day_trimester.csv
- ┃ ┃ ┣ 📂data_merged
- ┃ ┃ ┃ ┣ 📜merged_1day.csv
- ┃ ┃ ┃ ┣ 📜merged_1day_copy.csv
- ┃ ┃ ┃ ┗ 📜merged_1month.csv
- ┃ ┃ ┣ 📜aggregation_day.py
- ┃ ┃ ┣ 📜data_api_manual.py
- ┃ ┃ ┣ 📜data_api_opt.py
- ┃ ┃ ┣ 📜main.py
- ┃ ┃ ┣ 📜metadados_cams.txt
- ┃ ┃ ┣ 📜process_time_and_concat_api.py
- ┃ ┃ ┣ 📜progress.json
- ┃ ┃ ┣ 📜teste_same_files.py
- ┃ ┃ ┗ 📜__init__.py
- ┃ ┣ 📂IPMA
- ┃ ┃ ┣ 📂data_final
- ┃ ┃ ┣ 📂data_input
- ┃ ┃ ┃ ┣ 📜IPMA_stations.csv
- ┃ ┃ ┃ ┣ 📜IPMA_stations.json
- ┃ ┃ ┃ ┣ 📜IPMA_stations_data_oficial.csv
- ┃ ┃ ┃ ┣ 📜IPMA_stations_data_oficial_corrected.csv
- ┃ ┃ ┃ ┗ 📜IPMA_stations_with_location_info.csv
- ┃ ┃ ┣ 📂data_merged
- ┃ ┃ ┃ ┣ 📜conflict_maps_dist.html
- ┃ ┃ ┃ ┣ 📜IPMA_stations_conflict.csv
- ┃ ┃ ┃ ┣ 📜IPMA_stations_dont_match.csv
- ┃ ┃ ┃ ┣ 📜IPMA_stations_dont_match_manual.csv
- ┃ ┃ ┃ ┣ 📜IPMA_stations_merged.csv
- ┃ ┃ ┃ ┣ 📜merged_df_maps.html
- ┃ ┃ ┃ ┗ 📜merged_df_maps_dist.html
- ┃ ┃ ┣ 📜create_local_info_IPMA.py
- ┃ ┃ ┣ 📜main.py
- ┃ ┃ ┣ 📜merge_oficial_local_info.py
- ┃ ┃ ┣ 📜read_loc_stations_IPMA.py
- ┃ ┃ ┗ 📜__init__.py
- ┃ ┣ 📂METEOSTAT
- ┃ ┃ ┣ 📜get_api_data.py
- ┃ ┃ ┣ 📜main.py
- ┃ ┃ ┗ 📜__init__.py
- ┃ ┣ 📜main.py
- ┃ ┗ 📜__init__.py
- ┣ 📂__configure__
- ┃ ┣ 📜dependencies.py
- ┃ ┣ 📜generate_files.py
- ┃ ┣ 📜main.py
- ┃ ┣ 📜paths.py
- ┃ ┗ 📜__init__.py
- ┣ 📜main.py
- ┣ 📜ponto_de_situacao.txt
- ┣ 📜README.md
- ┣ 📜requirements.txt
- ┗ 📜tree.txt
-``` 
+```
+PFACD
+├─ demography
+│  ├─ main.py
+│  ├─ population_density
+│  │  ├─ clean_density.py
+│  │  ├─ main.py
+│  │  ├─ population_density.csv
+│  │  └─ __init__.py
+│  ├─ population_total
+│  │  ├─ data_input
+│  │  │  ├─ populacao_total.csv
+│  │  │  └─ previsao_oficial_2025.csv
+│  │  ├─ data_preparation.py
+│  │  ├─ main.py
+│  │  ├─ prediction_and_validation.py
+│  │  ├─ results_visualization.py
+│  │  └─ __init__.py
+│  └─ __init__.py
+├─ densidade_atualizada.csv
+├─ e-redes
+│  ├─ data_input
+│  │  ├─ 26-centrais.csv
+│  │  ├─ 8-unidades-de-producao-para-autoconsumo.csv
+│  │  ├─ capitais_distrito.py
+│  │  ├─ district_performance.csv
+│  │  ├─ distrito_radiation_imputed.csv
+│  │  ├─ energia_injectada_upac.csv
+│  │  ├─ energia_injetada.py
+│  │  ├─ energia_trimestre_escalao.png
+│  │  ├─ estimativas_rad_raster.csv
+│  │  ├─ injecaoanual.csv
+│  │  ├─ injecao_percentual.csv
+│  │  ├─ instalacoes_por_trimestre.png
+│  │  ├─ instalacoes_trimestre_escalao.png
+│  │  ├─ kw_por_trimestre.png
+│  │  ├─ mapa_2022_install.png
+│  │  ├─ mapa_2022_potency.png
+│  │  ├─ mapa_2025_install.png
+│  │  ├─ mapa_2025_potency.png
+│  │  ├─ pt.json
+│  │  ├─ renewable_count.png
+│  │  ├─ renewable_type.png
+│  │  ├─ summary_table_analise.png
+│  │  ├─ upacs_totais.py
+│  │  └─ upacs_totais_limpo.csv
+│  ├─ energia_injetada.py
+│  ├─ upacs_novas.py
+│  └─ __init__.py
+├─ economy
+│  ├─ 15paises_14anos_kW.csv
+│  ├─ 15paises_14anos_kWh.csv
+│  ├─ 19paises_6anos_kW.csv
+│  ├─ IRENA-Datafile-RenPwrGenCosts-in-2023-v2.xlsx
+│  ├─ main.py
+│  ├─ portugal_2018-2025_kW.csv
+│  └─ previsoes_portugal_2024_2025.csv
+├─ extract_presentations.py
+├─ geoespaciais
+│  ├─ .dockerignore
+│  ├─ Dockerfile
+│  ├─ generateparq.py
+│  ├─ geoespacial copy.py
+│  ├─ geoespacial.py
+│  ├─ geoespacial_w_dbsm.py
+│  ├─ main.py
+│  ├─ README.md
+│  ├─ requirements.txt
+│  └─ __init__.py
+├─ main.py
+├─ main_without_geo.py
+├─ meteorology
+│  ├─ CAMS
+│  │  ├─ aggregation_day.py
+│  │  ├─ data_api_manual.py
+│  │  ├─ data_api_opt.py
+│  │  ├─ data_input
+│  │  │  ├─ 1day
+│  │  │  │  ├─ processed_data
+│  │  │  │  │  └─ 7240919_processed.csv
+│  │  │  │  └─ raw_data
+│  │  │  │     └─ 7240919.csv
+│  │  │  └─ 1month
+│  │  │     ├─ processed_data
+│  │  │     │  └─ 7240919_processed.csv
+│  │  │     └─ raw_data
+│  │  │        └─ 7240919.csv
+│  │  ├─ main.py
+│  │  ├─ process_time_and_concat_api.py
+│  │  ├─ teste_same_files.py
+│  │  └─ __init__.py
+│  ├─ CapitaisDistrito_Valores_dia_Tn_Tx_Prec_RG.xlsx
+│  ├─ DadosIPMA_professor
+│  │  ├─ Precepitacao.csv
+│  │  ├─ RadiacaoGlobal.csv
+│  │  ├─ Tmaxima.csv
+│  │  └─ Tminima.csv
+│  ├─ IPMA
+│  │  ├─ create_local_info_IPMA.py
+│  │  ├─ main.py
+│  │  ├─ merge_oficial_local_info.py
+│  │  ├─ read_loc_stations_IPMA.py
+│  │  └─ __init__.py
+│  ├─ main.py
+│  ├─ METEOSTAT
+│  │  ├─ get_api_data.py
+│  │  ├─ main.py
+│  │  ├─ stations
+│  │  │  ├─ data_input
+│  │  │  │  └─ stations.db
+│  │  │  ├─ get_stations_data.py
+│  │  │  └─ main.py
+├─ ponto_de_situacao.txt
+├─ README.md
+├─ requirements.txt
+├─ __configure__
+│  ├─ dependencies.py
+│  ├─ main.py
+│  ├─ paths.py
+│  └─ __init__.py
+├─ __graficos__
+│  ├─ clean_princ_test_folder.py
+│  ├─ graficos_principais.py
+│  ├─ main.py
+│  └─ output
+└─ __pipeline__
+   ├─ main.py
+   └─ main_without_geo.py
+```
 
 ## Funcionalidades do Projeto
 O projeto PFACD estrutura-se em torno de três pilares funcionalidades principais:
@@ -161,5 +202,6 @@ Unidades de Produção para Autoconsumo (UPAC) com base em contextos meteorológ
 2. Corra o `config.py` com o Python. Isto gerará o ambiente virtual `.venv` e irá instalar as bibliotecas presentes no `requirements.txt`
 3. Se o `.venv` ainda não estiver ativado, ative. Se já estiver ativado, pular para passo 4.
 4. Corra o `generate_files.py` para gerar todos os ficheiros  
+
 
 

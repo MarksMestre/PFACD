@@ -109,22 +109,22 @@ def correr_modulo_geoespacial_via_docker():
 
 
 def main():
-    # """Executa o pipeline completo de ponta a ponta."""
-    # print("\n==================================================")
-    # print("📂 Executando os Módulos do Pipeline")
-    # print("==================================================")
+    """Executa o pipeline completo de ponta a ponta."""
+    print("\n==================================================")
+    print("📂 Executando os Módulos do Pipeline")
+    print("==================================================")
 
-    # print("\n--- 1. A gerar dados meteorológicos ---")
-    # metereology()
-    # print("Geração de dados meteorológicos terminada.")
+    print("\n--- 1. A gerar dados meteorológicos ---")
+    metereology()
+    print("Geração de dados meteorológicos terminada.")
 
-    # print("\n--- 2. A gerar dados demográficos ---")
-    # demography()
-    # print("Geração de dados demográficos terminada.")
+    print("\n--- 2. A gerar dados demográficos ---")
+    demography()
+    print("Geração de dados demográficos terminada.")
 
-    # print("\n--- 3. A gerar dados económicos ---")
-    # economy()
-    # print("Geração de dados económicos terminada.")
+    print("\n--- 3. A gerar dados económicos ---")
+    economy()
+    print("Geração de dados económicos terminada.")
 
     print("\n--- 4. A gerar dados geoespaciais (Isolamento Docker) ---")
     sucesso_geo = correr_modulo_geoespacial_via_docker()
