@@ -21,7 +21,7 @@ def main():
         return
 
     # 3. Se chegamos aqui, já estamos na .venv e os imports vão funcionar
-    from __pipeline__.main import main as pipeline
+    from __pipeline__.tentativa import main as pipeline
     pipeline()
     finish = time.time()
     final_time = finish - start

@@ -6,9 +6,9 @@ import sys
 base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, base_path)
 
-from geoespaciais.generateparq import main as generateparq
-from geoespaciais.geoespacial_w_dbsm_c import main as geospacial_w_dbsm
-from geoespaciais.geoespacial import main as geoespacial
+from generateparq import main as generateparq
+from geoespacial_w_dbsm import main as geospacial_w_dbsm
+from geoespacial import main as geoespacial
 
 def main():
     print("\n\n\nIniciando processamento de dados geográficos\n\n\n")

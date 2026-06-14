@@ -554,7 +554,7 @@ def prepare_for_ml(df_weight):
     cols = [
         "NUTS3","territory_code","NUTS3_Name", "Name", "Ano",
         "pop_lag_1","weight_lag_1","pop_lag_2","weight_lag_2","pop_lag_3","weight_lag_3","pop_lag_4","weight_lag_4",
-        "acceleration",
+        "growth_rate", "acceleration",
         "mun_growth_lag_1","relative_to_nuts_growth_lag_1",
         "mun_growth_lag_2","relative_to_nuts_growth_lag_2",
         "mun_growth_lag_3","relative_to_nuts_growth_lag_3",
