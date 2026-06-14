@@ -691,18 +691,17 @@ def graph_92():
 
 def main():
     limpar_pasta(OUTPUT_DIR)
-    # func_excl = []
-    # # for i, func in enumerate(func_excl):
-    # #     func = "graph_" + func
-    # #     func_excl[i] = func
+    func_excl = []
+    # for i, func in enumerate(func_excl):
+    #     func = "graph_" + func
+    #     func_excl[i] = func
 
-    # for func in globals():
-    #     if func in func_excl: continue
-    #     elif func.startswith("graph_") and callable(globals()[func]):
-    #         print(f"Criando gráfico: {func}...")
-    #         globals()[func]()
+    for func in globals():
+        if func in func_excl: continue
+        elif func.startswith("graph_") and callable(globals()[func]):
+            print(f"Criando gráfico: {func}...")
+            globals()[func]()
 
-    graph_40()
     
     print("Gráficos criados com sucesso em:", OUTPUT_DIR)
 
