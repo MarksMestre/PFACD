@@ -205,6 +205,19 @@ energia_distrito_acumulada["Posição"] = range(
 )
 
 
+heatmap_energia = (
+    energia
+    .groupby(["Distrito", "Mês"])["Energia Injetada (kWh)"]
+    .sum()
+    .reset_index()
+)
+
+heatmap_pivot = heatmap_energia.pivot(
+    index="Distrito",
+    columns="Mês",
+    values="Energia Injetada (kWh)"
+)
+
 # =========================
 # FUNÇÕES DE GRÁFICOS
 # =========================
@@ -318,6 +331,29 @@ def graph_39():
     plt.xlabel("Número de instalações")
     plt.ylabel("Energia injetada (kWh)")
     guardar_grafico("39_instalacoes_vs_energia_por_distrito.png")
+
+
+
+def graph_40():
+    # 1. Ajustado o tamanho da figura para 16x10 (igual ao graph_59) para consistência no relatório
+    plt.figure(figsize=(16, 10))
+    
+    # 2. Adicionado o parâmetro cbar_kws para legendar a barra de cores com a unidade correta (kWh)
+    sns.heatmap(
+        heatmap_pivot,
+        cmap="YlOrRd",
+        linewidths=0.5,
+        cbar_kws={'label': 'Total de Energia Injetada (kWh)'}  # <- Teoria de estética aplicada aqui
+    )
+    
+    # 3. Títulos e eixos estruturados de forma idêntica
+    plt.title("Heatmap da energia injetada por distrito e mês")
+    plt.xlabel("Mês")
+    plt.ylabel("Distrito")
+    
+    # 4. Exportação do asset gráfico
+    guardar_grafico("40_heatmap_energia_distrito_mes.png")
+
 
 
 def graph_49():
@@ -655,18 +691,18 @@ def graph_92():
 
 def main():
     limpar_pasta(OUTPUT_DIR)
-    func_excl = []
-    # for i, func in enumerate(func_excl):
-    #     func = "graph_" + func
-    #     func_excl[i] = func
+    # func_excl = []
+    # # for i, func in enumerate(func_excl):
+    # #     func = "graph_" + func
+    # #     func_excl[i] = func
 
-    for func in globals():
-        if func in func_excl: continue
-        elif func.startswith("graph_") and callable(globals()[func]):
-            print(f"Criando gráfico: {func}...")
-            globals()[func]()
+    # for func in globals():
+    #     if func in func_excl: continue
+    #     elif func.startswith("graph_") and callable(globals()[func]):
+    #         print(f"Criando gráfico: {func}...")
+    #         globals()[func]()
 
-
+    graph_40()
     
     print("Gráficos criados com sucesso em:", OUTPUT_DIR)
 

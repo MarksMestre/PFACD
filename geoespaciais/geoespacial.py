@@ -1,14 +1,14 @@
-import rasterio
-from rasterio.warp import reproject, Resampling
-from rasterio import features
-from rasterio.plot import plotting_extent, show
-from rasterio.mask import mask
+import rasterio # pyright: ignore[reportMissingImports]
+from rasterio.warp import reproject, Resampling # pyright: ignore[reportMissingImports]
+from rasterio import features # pyright: ignore[reportMissingImports]
+from rasterio.plot import plotting_extent, show # pyright: ignore[reportMissingImports]
+from rasterio.mask import mask # pyright: ignore[reportMissingImports]
 import json
 import geopandas as gpd
 import pandas as pd
 from matplotlib import pyplot as plt
 import numpy as np
-import cv2
+import cv2 # pyright: ignore[reportMissingImports]
 import os
 import math
 from tqdm import tqdm
@@ -344,7 +344,7 @@ def plot_fractional_raster(mask_array, transform, solar_array, title, name, dist
 
 def sum_potential_by_district(potential_array, transform, districts_gdf):
     #raster temporário
-    from rasterio.io import MemoryFile
+    from rasterio.io import MemoryFile # pyright: ignore[reportMissingImports]
 
     results = []
 
@@ -386,7 +386,7 @@ def sum_potential_by_district(potential_array, transform, districts_gdf):
 
 #Esta função é para estimar energia aproveitada por kW em cada distrito, em média. varia bastante mas deve ser melhor do que as estações do ipma pois é mais abrangente
 def average_radiation_by_district(solar_array, transform, districts_gdf):
-    from rasterio.io import MemoryFile
+    from rasterio.io import MemoryFile # pyright: ignore[reportMissingImports]
 
     results = []
     height, width = solar_array.shape

@@ -8,7 +8,7 @@ sys.path.insert(0, base_path)
 
 from generateparq import main as generateparq
 from geoespacial_w_dbsm import main as geospacial_w_dbsm
-from geoespacial import main as geoespacial
+from geoespaciais.geoespacial import main as geoespacial
 
 def main():
     print("\n\n\nIniciando processamento de dados geográficos\n\n\n")
