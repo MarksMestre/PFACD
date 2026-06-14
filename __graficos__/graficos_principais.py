@@ -40,7 +40,7 @@ PATH_PRECOS = os.path.join(
     "portugal_2018-2025_kW.csv"
 )
 
-OUTPUT_DIR = os.path.join(BASE_DIR, "graficos", "principais", "test")
+OUTPUT_DIR = os.path.join(BASE_DIR, "__graficos__", "principais", "test")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 
@@ -185,6 +185,25 @@ energia_demo["Energia injetada por 1000 habitantes"] = energia_demo["Energia Inj
 
 base_demo["Classe de densidade"] = pd.cut(base_demo["Densidade populacional"], bins=[0, 50, 100, 250, 500, 1000, float("inf")], labels=["0-50", "50-100", "100-250", "250-500", "500-1000", ">1000"])
 
+energia_distrito_acumulada = (
+    energia
+    .groupby("Distrito")["Energia Injetada (kWh)"]
+    .sum()
+    .sort_values(ascending=False)
+    .reset_index()
+)
+
+energia_distrito_acumulada["Percentagem acumulada"] = (
+    energia_distrito_acumulada["Energia Injetada (kWh)"].cumsum()
+    / energia_distrito_acumulada["Energia Injetada (kWh)"].sum()
+    * 100
+)
+
+energia_distrito_acumulada["Posição"] = range(
+    1,
+    len(energia_distrito_acumulada) + 1
+)
+
 
 # =========================
 # FUNÇÕES DE GRÁFICOS
@@ -300,6 +319,50 @@ def graph_39():
     plt.ylabel("Energia injetada (kWh)")
     guardar_grafico("39_instalacoes_vs_energia_por_distrito.png")
 
+
+def graph_49():
+    # 1. Configuração do tamanho da figura para corresponder ao padrão dos anteriores (18x10)
+    # ou mantendo proporções limpas com fontes legíveis
+    plt.figure(figsize=(18, 10))
+
+    # 2. Plot da linha com marcadores destacados e cores corporativas fortes
+    sns.lineplot(
+        data=energia_distrito_acumulada,
+        x="Posição",
+        y="Percentagem acumulada",
+        marker="o",
+        linewidth=4,
+        markersize=10,
+        color="darkgreen"  # Uma cor distinta para diferenciar de Potência (laranja) e Instalações (azul)
+    )
+
+    # 3. Iteração e posicionamento cirúrgico das etiquetas com rotação a 60°
+    # O acréscimo de + 2.5 no Y previne que o texto atropele o marcador redondo
+    for _, row in energia_distrito_acumulada.iterrows():
+        plt.text(
+            row["Posição"], 
+            row["Percentagem acumulada"] + 2.5, 
+            row["Distrito"], 
+            fontsize=14, 
+            rotation=60, 
+            ha='left', 
+            fontweight='bold'
+        )
+
+    # 4. Escala X definida de 1 em 1 para garantir correspondência com cada ponto
+    plt.xticks(range(1, len(energia_distrito_acumulada) + 1, 1))
+
+    # 5. Margem técnica Y estendida até 115 para acomodar perfeitamente os textos do topo da curva
+    plt.ylim(0, 115)
+    plt.yticks(range(0, 101, 10))
+
+    # 6. Títulos e legendas estruturados
+    plt.title("Concentração acumulada da energia injetada por distrito")
+    plt.xlabel("Distritos ordenados por energia injetada")
+    plt.ylabel("Percentagem acumulada da energia (%)")
+
+    # 7. Exportação do asset gráfico para a diretoria local
+    guardar_grafico("49_concentracao_acumulada_energia_distrito.png")
 
 def graph_51():
     plt.figure(figsize=(16, 9))
@@ -591,38 +654,20 @@ def graph_92():
 # =========================
 
 def main():
-    limpar_pasta()
-    graph_6()
-    graph_13()
-    graph_14()
-    graph_28()
-    graph_29()
-    graph_38()
-    graph_39()
-    graph_51()
-    graph_53()
-    graph_59()
-    graph_66()
-    graph_67()
-    graph_73_200k()
-    graph_73_25k()
-    graph_74()
-    graph_74_200k()
-    graph_75()
-    graph_75_1000()
-    graph_76()
-    graph_76_1000()
-    graph_77()
-    graph_77_1000()
-    graph_78()
-    graph_80()
-    graph_81()
-    graph_82()
-    graph_83()
-    graph_84()
-    graph_89()
-    graph_91()
-    graph_92()
+    limpar_pasta(OUTPUT_DIR)
+    func_excl = []
+    # for i, func in enumerate(func_excl):
+    #     func = "graph_" + func
+    #     func_excl[i] = func
+
+    for func in globals():
+        if func in func_excl: continue
+        elif func.startswith("graph_") and callable(globals()[func]):
+            print(f"Criando gráfico: {func}...")
+            globals()[func]()
+
+
+    
     print("Gráficos criados com sucesso em:", OUTPUT_DIR)
 
 

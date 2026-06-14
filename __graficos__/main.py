@@ -55,7 +55,7 @@ PATH_PRECOS = os.path.join(
     "portugal_2018-2025_kW.csv"
 )
 
-OUTPUT_DIR = os.path.join(BASE_DIR, "graficos", "output")
+OUTPUT_DIR = os.path.join(BASE_DIR, "__graficos__", "output")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 sns.set_theme(style="whitegrid")

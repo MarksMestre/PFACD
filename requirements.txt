@@ -10,3 +10,4 @@ seaborn
 meteostat
 folium
 geopandas
+adjustText
