@@ -6,7 +6,6 @@ Limites Administrativos: Polígonos de referência do território nacional da CA
 Para instalar as dependências, corre pip install -r requirements.txt
 OU(recomendado devido a dependência do GDAL)
 docker build -t geoespaciais-app .
-docker run --rm -v $(pwd):/app geoespaciais-app
 Como correr os ficheiros:
 corre generateparq.py, depois geoespacial.py. geoespacial _w_dbsm.py não depende desta ordem.
  
