@@ -77,6 +77,7 @@ def manipulate_raster_OPTA(opta_directory, solar_shape, solar_transform):
 
         #Mapa da área real que 1m2 de painel útil ocupa
         module_footprint_array = 1.65 / np.round(1.65 * np.cos(np.radians(opta_array)), 2)
+        module_footprint_array = 1.65 / np.round(1.65 * np.cos(np.radians(opta_array)), 2)
         module_footprint_array = np.where(opta_array == 0.0, 0.0, module_footprint_array)
 
         print("Inclinação optimal máxima no país: np.max(OPTA_array)")
@@ -91,6 +92,7 @@ def manipulate_geojson_buildings(buildings_directory, solar_shape, solar_transfo
     if not os.path.exists("portugal_mainland_buildings.parquet"):
         ##isto gerava a versão com clip dos telhados
         buildings_gdf = gpd.read_parquet("pt_buildings_complete.parquet")
+        buildings_gdf.sindex
         buildings_gdf = buildings_gdf.clip(portugal_geom[0])
         buildings_gdf.to_parquet("portugal_mainland_buildings.parquet")
 
