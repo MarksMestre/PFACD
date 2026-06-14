@@ -18,16 +18,16 @@ import matplotlib.pyplot as plt
 def vector_map(geojson_directory):
     districts_gdf = gpd.read_file(geojson_directory, layer='cont_distritos')
 
-    # Ensure CRS is correct
+    #CRS mais comum
     if districts_gdf.crs != "EPSG:4326":
         districts_gdf = districts_gdf.to_crs("EPSG:4326")
 
     districts_gdf = districts_gdf.rename(columns={'distrito': 'name'})
 
-    # Filter out islands
+    #Tirar os arquipélagos
     districts_gdf = districts_gdf[~districts_gdf['name'].isin(['Azores', 'Madeira'])]
 
-    # Dissolve to simplify boundaries (Optional, but good for cleanliness)
+    #Dissolução
     districts_gdf = districts_gdf.dissolve(by='name', as_index=False)
 
 
@@ -443,17 +443,6 @@ def main():
     })
 
     districts_gdf, district_names_series = vector_map("Continente_CAOP2025.gpkg")
-    # --- DIAGNOSTIC BLOCK ---
-    print("\n--- GeoDataFrame Metadata Inspection ---")
-    print(f"CRS: {districts_gdf.crs}")
-    print(f"Geometry Type: {districts_gdf.geom_type.unique()}")
-    print(f"Number of Records: {len(districts_gdf)}")
-    print(f"Bounds (minx, miny, maxx, maxy): {districts_gdf.total_bounds}")
-    print("\n--- Column Types ---")
-    print(districts_gdf.dtypes)
-    print("\n--- First 5 rows ---")
-    print(districts_gdf.head())
-    # ------------------------
     solar_shape, solar_transform, solar_array = manipulate_raster_solar("PVOUT.tif", districts_gdf)
     OPTA_array, footprint = manipulate_raster_OPTA("OPTA.tif", solar_shape=solar_shape, solar_transform=solar_transform)
     print(f"DEBUG: Min={np.nanmin(solar_array)}, Max={np.nanmax(solar_array)}")
