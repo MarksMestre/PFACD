@@ -8,6 +8,11 @@ OU(recomendado devido a dependência do GDAL)
 docker build -t geoespaciais-app .
 Como correr os ficheiros:
 corre generateparq.py, depois geoespacial.py. geoespacial _w_dbsm.py não depende desta ordem.
-sudo docker run --rm -v $(pwd):/app -w /app geoespaciais-app python3 generateparq.py
-sudo docker run --rm -v $(pwd):/app -w /app geoespaciais-app python3 geoespacial .py
-sudo docker run --rm -v $(pwd):/app -w /app geoespaciais-app python3 geoespacial_w_dbsm.py 
+Para Linux/MacOS:
+docker run --rm -v "$(pwd):/app" -w /app geoespaciais-app python3 generateparq.py
+docker run --rm -v "$(pwd):/app" -w /app geoespaciais-app python3 geoespacial.py
+docker run --rm -v "$(pwd):/app" -w /app geoespaciais-app python3 geoespacial_w_dbsm.py
+Para Windows:
+docker run --rm -v "${PWD}:/app" -w /app geoespaciais-app python3 generateparq.py
+docker run --rm -v "${PWD}:/app" -w /app geoespaciais-app python3 geoespacial.py
+docker run --rm -v "${PWD}:/app" -w /app geoespaciais-app python3 geoespacial_w_dbsm.py
