@@ -11,3 +11,4 @@ rioxarray==0.22.0
 stackstac==0.5.1
 pyarrow
 opencv-python-headless
+tqdm

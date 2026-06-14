@@ -1,45 +1,46 @@
-import rasterio # pyright: ignore[reportMissingImports]
-from rasterio.warp import reproject, Resampling # pyright: ignore[reportMissingImports]
-from rasterio import features # pyright: ignore[reportMissingImports]
-from rasterio.plot import plotting_extent # pyright: ignore[reportMissingImports]
-from rasterio.mask import mask # pyright: ignore[reportMissingImports]
+import rasterio
+from rasterio.warp import reproject, Resampling
+from rasterio import features
+from rasterio.plot import plotting_extent, show
+from rasterio.mask import mask
 import json
 import geopandas as gpd
 import pandas as pd
 from matplotlib import pyplot as plt
 import numpy as np
-import cv2 # pyright: ignore[reportMissingImports]
+import cv2
 import os
 import math
-
+from tqdm import tqdm
 import matplotlib.pyplot as plt
-
 
 
 def vector_map(geojson_directory):
     districts_gdf = gpd.read_file(geojson_directory, layer='cont_distritos')
 
-    #Reprojeção do mapa
+    #CRS mais comum
     if districts_gdf.crs != "EPSG:4326":
         districts_gdf = districts_gdf.to_crs("EPSG:4326")
 
     districts_gdf = districts_gdf.rename(columns={'distrito': 'name'})
+
+    #Tirar os arquipélagos
     districts_gdf = districts_gdf[~districts_gdf['name'].isin(['Azores', 'Madeira'])]
 
+    #Dissolução
     districts_gdf = districts_gdf.dissolve(by='name', as_index=False)
 
-    #Dissolver os diferentes distritos num só portugal
-    portugal_geom = [districts_gdf.geometry.union_all()]
 
     district_names_series = districts_gdf['name']
-    return districts_gdf, portugal_geom, district_names_series
 
-def manipulate_raster_solar(solar_directory, portugal_geom):
+    return districts_gdf, district_names_series
+
+def manipulate_raster_solar(solar_directory, districts_gdf):
     with rasterio.open(solar_directory) as src: #Ficheiro com dados de radiação solar médios(kWh)
         solar_meta = src.meta
         print(solar_meta)
 
-        out_image, out_transform = mask(src, portugal_geom, crop=True)
+        out_image, out_transform = mask(src, districts_gdf.geometry, crop=True)
 
         solar_array = out_image[0]
         solar_transform = out_transform
@@ -70,21 +71,46 @@ def manipulate_raster_OPTA(opta_directory, solar_shape, solar_transform):
         module_footprint_array = 1.65 / np.round(1.65 * np.cos(np.radians(opta_array)), 2)
         module_footprint_array = np.where(opta_array == 0.0, 0.0, module_footprint_array)
 
-        print("Inclinação optimal máxima no país: np.max(OPTA_array)")
-
         return opta_array,module_footprint_array
 
-def manipulate_geojson_buildings(buildings_directory, solar_shape, solar_transform):
-
+def manipulate_geojson_buildings(buildings_directory, solar_shape, solar_transform, districts_gdf):
 
     if not os.path.exists("portugal_mainland_buildings.parquet"):
-        ##isto gerava a versão com clip dos telhados
+        #isto gerava a versão com clip dos telhados
         buildings_gdf = gpd.read_parquet("pt_buildings_complete.parquet")
         buildings_gdf.sindex
-        buildings_gdf = buildings_gdf.clip(portugal_geom[0])
-        buildings_gdf.to_parquet("portugal_mainland_buildings.parquet")
+        print(f"Buildings CRS: {buildings_gdf.crs}")
+
+        #O mapa da CAOP é muito complexo para fazer este clip, necessita simplificação
+        print("Creating bounding box and simplifying districts geometry to speed up clip...")
+        bbox = districts_gdf.total_bounds
+        buildings_gdf = buildings_gdf.cx[bbox[0]:bbox[2], bbox[1]:bbox[3]]
+        simplified_districts = districts_gdf.copy()
+        simplified_districts['geometry'] = districts_gdf.geometry.simplify(0.001, preserve_topology=True)
+
+        if buildings_gdf.crs != "EPSG:4326":
+            print(f"Reprojecting buildings to {"EPSG:4326"}...")
+            buildings_gdf = buildings_gdf.to_crs("EPSG:4326")
+
+
+        def chunked_clip(buildings, districts):
+            clipped_chunks = []
+
+            #Separar o processo do clip em chunks
+            for _, district in tqdm(districts.iterrows(), total=len(districts), desc="Clipping districts"):
+                district_buildings = buildings.clip(district.geometry)
+                clipped_chunks.append(district_buildings)
+            "Finished chunked clipping"
+            return gpd.GeoDataFrame(pd.concat(clipped_chunks, ignore_index=True), crs=buildings.crs)
+
+        print("Starting chunked clipping process...")
+        buildings_gdf = chunked_clip(buildings_gdf, simplified_districts)
+
+        print(f"Saving clipped data to {buildings_directory}...")
+        buildings_gdf.to_parquet(buildings_directory)
 
     buildings_gdf = gpd.read_parquet(buildings_directory)
+
 
     #vista de olhos
     print(buildings_gdf.describe())
@@ -244,7 +270,7 @@ def calculate_and_save_potential(solar_array, building_mask, transform):
     return potential_energy
 
 
-def pvout_map():
+def pvout_map(solar_array, solar_transform, districts_gdf):
     fig, ax = plt.subplots(figsize=(7, 13))
     plot_data = np.where(solar_array < 10, np.nan, solar_array)
     max_val = np.nanmax(plot_data)
@@ -290,7 +316,7 @@ def make_plot_raster_under_vectors(fractional_mask, solar_transform, buildings_g
     plt.savefig(f"building_density_overlay_{local}.png")
 
 
-def plot_fractional_raster(mask_array, transform, solar_array, title, name):
+def plot_fractional_raster(mask_array, transform, solar_array, title, name, districts_gdf):
     data = np.nan_to_num(mask_array, nan=0.0)
     data[data < 1e-5] = 0.0
 
@@ -323,6 +349,7 @@ def sum_potential_by_district(potential_array, transform, districts_gdf):
     results = []
 
     #metadadis di memfuke
+    #*metadados do memfile
     height, width = potential_array.shape
     new_dataset_meta = {
         'driver': 'GTiff',
@@ -414,19 +441,19 @@ def main():
     'figure.titlesize': 60,
     "axes.titlepad": 20
     })
-    
-    districts_gdf, portugal_geom, district_names_series = vector_map("Continente_CAOP2025.gpkg")
-    solar_shape, solar_transform, solar_array = manipulate_raster_solar("PVOUT.tif", portugal_geom)
+
+    districts_gdf, district_names_series = vector_map("Continente_CAOP2025.gpkg")
+    solar_shape, solar_transform, solar_array = manipulate_raster_solar("PVOUT.tif", districts_gdf)
     OPTA_array, footprint = manipulate_raster_OPTA("OPTA.tif", solar_shape=solar_shape, solar_transform=solar_transform)
     print(f"DEBUG: Min={np.nanmin(solar_array)}, Max={np.nanmax(solar_array)}")
-    buildings_gdf, building_mask = manipulate_geojson_buildings("portugal_mainland_buildings.parquet", solar_shape, solar_transform)
+    buildings_gdf, building_mask = manipulate_geojson_buildings("portugal_mainland_buildings.parquet", solar_shape, solar_transform, districts_gdf)
     potential_energy_array = calculate_and_save_potential(solar_array,building_mask, solar_transform)
 
 
-    #Chamar tudo
-    pvout_map()
-    plot_fractional_raster(building_mask, solar_transform, solar_array, "buildings", "buildings.png")
-    plot_fractional_raster(potential_energy_array, solar_transform, solar_array, "Solar Potential: Land Only", "Solar potential.png")
+    #Chamar gráficos
+    pvout_map(solar_array, solar_transform, districts_gdf)
+    plot_fractional_raster(building_mask, solar_transform, solar_array, "buildings", "buildings.png", districts_gdf)
+    plot_fractional_raster(potential_energy_array, solar_transform, solar_array, "Solar Potential: Land Only", "Solar potential.png", districts_gdf)
     make_plot_raster_under_vectors(building_mask, solar_transform, buildings_gdf, [-9.18, -9.10], [38.70, 38.76], "Lisboa")
     make_plot_raster_under_vectors(building_mask, solar_transform, buildings_gdf, [-9.7, -6.0], [36.8, 42.2], "Portugal")
 
@@ -451,7 +478,7 @@ def main():
     percentage_breakdown = buildings_gdf['class'].value_counts(normalize=True, dropna=False) * 100
 
     print("Percentage of building types:")
-    print(percentage_breakdown.head(20)) # Shows the top 20, including None/NaN
+    print(percentage_breakdown.head(20))
 
     direction_breakdown = buildings_gdf['roof_shape'].value_counts(normalize=True, dropna=False) * 100
 
@@ -460,5 +487,8 @@ def main():
 
     print("end")
 
-    print(np.unique(OPTA_array))
+    print(np.nanmax(OPTA_array))
     print(np.unique(footprint))
+
+if __name__ == "__main__":
+    main()
