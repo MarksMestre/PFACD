@@ -16,3 +16,6 @@ Para Windows:
 docker run --rm -v "${PWD}:/app" -w /app geoespaciais-app python3 generateparq.py
 docker run --rm -v "${PWD}:/app" -w /app geoespaciais-app python3 geoespacial.py
 docker run --rm -v "${PWD}:/app" -w /app geoespaciais-app python3 geoespacial_w_dbsm.py
+
+
+https://huggingface.co/datasets/Litroso/PFACD
