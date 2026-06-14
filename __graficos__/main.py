@@ -4408,14 +4408,134 @@ def graph_80A(folder_path=OUTPUT_DIR):
     print("\n🎯 [Valores Identificados] As seguintes janelas ultrapassam a linha teórica:")
     print(f"{'ID':<4} | {'Intervalo (Min - Max)':<30} | {'Nº Concelhos Nesta Barra':<25}")
     print("-" * 65)
-    for idx, (inf, sup, qtd) in enumerate(valores_detetados):
-        print(f"P{idx+1:<3} | [{inf:.2f} a {sup:.2f}] UPAC/1000 hab.   | {int(qtd)} concelhos")
 
     perfis = {}
-    for i, val in enumerate(valores_detetados):
-        perfis[i+1] = val
+
+    for idx, (inf, sup, qtd) in enumerate(valores_detetados):
+        print(f"P{idx+1:<3} | [{inf:.2f} a {sup:.2f}] UPAC/1000 hab.   | {int(qtd)} concelhos")
+        val = (inf, sup, qtd)
+        perfis[idx+1] = val
         
     return perfis
+
+
+# =========================================================================
+# 80B. MAPEAMENTO DE MACRO-CONJUNTOS (C1, C2, C3) E PICOS MÁXIMOS ISOLADOS
+# =========================================================================
+def graph_80B(folder_path=OUTPUT_DIR):
+    print("\n📊 A gerar Graph 80B (Visualização Estratégica Híbrida - Sem Viés)...")
+    
+    # 1. Configurar o gráfico base
+    fig, ax = plt.subplots(figsize=(14, 7))
+    dados = base_demo["UPAC por 1000 habitantes"].dropna()
+    
+    # Gerar o histograma base
+    n_counts, bins, patches = ax.hist(
+        dados, bins=40, alpha=0.3, color="gray", edgecolor="white", label="Distribuição Geral"
+    )
+    
+    # 2. Calcular e desenhar a curva KDE (Estimativa de Densidade de Kernel)
+    kde = scipy.stats.gaussian_kde(dados)
+    bin_width = bins[1] - bins[0]
+    x_eval = np.linspace(dados.min(), dados.max(), 1000)
+    y_kde_scaled = kde(x_eval) * len(dados) * bin_width
+    
+    ax.plot(x_eval, y_kde_scaled, color="black", linewidth=2, label="Linha de Distribuição (KDE)")
+    
+    # 3. Mapeamento de Cores e Rótulos para a Estratégia Híbrida
+    # Definimos uma paleta de cores académica bem distinguível
+    cor_c1 = "#1f77b4"      # Azul (Cauda Negativa)
+    cor_c2 = "#2ca02c"      # Verde (Massa Central de Baixa Densidade)
+    cor_c3 = "#bcbd22"      # Amarelo/Oliva (Cauda Positiva)
+    cor_picos = "#d62728"   # Vermelho Vivo (Picos Máximos Isolados)
+    
+    perfil_contador = 1
+    offset_y = max(n_counts) * 0.015
+    
+    # Arrays auxiliares para podermos criar uma legenda limpa no final
+    barras_c1, barras_c2, barras_c3, barras_picos = [], [], [], []
+
+    for i in range(len(patches)):
+        bin_centro = (bins[i] + bins[i+1]) / 2
+        kde_altura_no_ponto = np.interp(bin_centro, x_eval, y_kde_scaled)
+        
+        # Apenas analisamos as barras que estão acima do KDE (os perfis identificados)
+        if n_counts[i] > kde_altura_no_ponto:
+            
+            # --- ESTRATÉGIA DE CLASSIFICAÇÃO COM BASE NA POSIÇÃO DO PERFIL ---
+            # P1 a P4 -> C1 (Cauda Negativa)
+            if 1 <= perfil_contador <= 4:
+                patches[i].set_facecolor(cor_c1)
+                patches[i].set_alpha(0.8)
+                rotulo = f"C1\n(P{perfil_contador})"
+                cor_texto = cor_c1
+                barras_c1.append(patches[i])
+                
+            # P5 a P8 -> C2 (Centro de Baixo Excedente)
+            elif 5 <= perfil_contador <= 8:
+                patches[i].set_facecolor(cor_c2)
+                patches[i].set_alpha(0.8)
+                rotulo = f"C2\n(P{perfil_contador})"
+                cor_texto = cor_c2
+                barras_c2.append(patches[i])
+                
+            # P9, P10, P11 -> PICOS MÁXIMOS ISOLADOS (Destaque Vermelho Absoluto)
+            elif 9 <= perfil_contador <= 11:
+                patches[i].set_facecolor(cor_picos)
+                patches[i].set_alpha(0.9)
+                rotulo = f"💥 P{perfil_contador}"  # Emoji ou marcador visual de Pico Máximo
+                cor_texto = "darkred"
+                barras_picos.append(patches[i])
+                
+            # P12 a P14 (ou mais) -> C3 (Cauda Positiva / Ultra Penetração)
+            else:
+                patches[i].set_facecolor(cor_c3)
+                patches[i].set_alpha(0.8)
+                rotulo = f"C3\n(P{perfil_contador})"
+                cor_texto = "darkkhaki"
+                barras_c3.append(patches[i])
+            
+            # Adicionar rótulo descritivo duplo (Macro-grupo + ID do perfil original)
+            ax.text(
+                x=bin_centro,
+                y=n_counts[i] + offset_y,
+                s=rotulo,
+                ha='center',
+                va='bottom',
+                fontsize=8,
+                fontweight='bold',
+                color=cor_texto
+            )
+            
+            perfil_contador += 1
+
+    # 4. Customização das Legendas Académicas
+    # Criamos "proxies" estáveis para a legenda para não duplicar entradas por cada barra individual
+    from matplotlib.patches import Patch
+    legend_elements = [
+        Patch(facecolor="gray", alpha=0.3, edgecolor="white", label="Frequência Base (Sob o KDE)"),
+        Patch(facecolor=cor_c1, alpha=0.8, label="C1: Cauda Negativa (P1-P4)"),
+        Patch(facecolor=cor_c2, alpha=0.8, label="C2: Centro de Baixo Excedente (P5-P8)"),
+        Patch(facecolor=cor_picos, alpha=0.9, label="Picos Máximos Isolados (P9-P11)"),
+        Patch(facecolor=cor_c3, alpha=0.8, label="C3: Cauda Positiva / Ultra Penetração (>=P12)")
+    ]
+    ax.legend(handles=legend_elements, loc="upper right", fontsize=10)
+
+    # 5. Títulos e Métricas de Eixos
+    ax.set_title(
+        "Graph 80B: Mapeamento Estratégico de Macro-Conjuntos e Picos Dominantes\n"
+        "Evidência Visual do Isolamento Metodológico contra Enviesamento de Escala", 
+        fontsize=14, fontweight='bold'
+    )
+    ax.set_xlabel("UPAC por 1000 habitantes", fontsize=11)
+    ax.set_ylabel("Frequência (Número de Concelhos)", fontsize=11)
+    
+    # Folga no topo do eixo Y para os rótulos de texto respirarem
+    ax.set_ylim(0, max(n_counts) * 1.12)
+    
+    path = os.path.join(folder_path, "80B_mapeamento_macro_conjuntos_caudas.png")
+    guardar_grafico(path)
+    print(f"✅ Painel de Diagnóstico 80B exportado com sucesso em: '{path}'")
 
 # =========================
 # 100. ANÁLISE MULTI-VARIÁVEL AUTOMATIZADA PARA N PERFIS ISOLADOS
@@ -4448,7 +4568,7 @@ def graph_100(folder_path=OUTPUT_DIR, perfis=None):
             if len(concelhos_alvo) == 0:
                 continue
                 
-            print(f"   -> Perfil {idx+1}: A processar {len(concelhos_alvo)} concelhos no intervalo [{limite_inf:.2f} a {limite_sup:.2f}]")
+            print(f"   -> Perfil {idx}: A processar {len(concelhos_alvo)} concelhos no intervalo [{limite_inf:.2f} a {limite_sup:.2f}]")
             
             # 2. Filtrar os DataFrames apenas para o grupo deste perfil
             df_demo_alvo = base_demo[base_demo["Concelho"].isin(concelhos_alvo)].copy()
@@ -4553,11 +4673,11 @@ def graph_100_conjuntos(folder_path=OUTPUT_DIR, valores_analise_tuple=None):
         
         num_p = int(p.replace("P", ""))
         if 1 <= num_p <= 4:
-            return "C1: Cauda Negativa (P1-P4)"
+            return "C1 (P1-P4)"
         elif 5 <= num_p <= 8:
-            return "C2: Centro de Baixo Excedente (P5-P8)"
+            return "C2 (P5-P8)"
         elif 12 <= num_p <= 14:
-            return "C3: Cauda Positiva / Ultra Penetração (P12-P14)"
+            return "C3 (P12-P14)"
         
         # P9, P10 e P11 retornam None e ficam fora desta análise agregada
         return None
@@ -4575,9 +4695,9 @@ def graph_100_conjuntos(folder_path=OUTPUT_DIR, valores_analise_tuple=None):
     df_ener_grup = df_ener_grup.dropna(subset=["Macro_Conjunto"])
     
     ordem_grupos = [
-        "C1: Cauda Negativa (P1-P4)", 
-        "C2: Centro de Baixo Excedente (P5-P8)", 
-        "C3: Cauda Positiva / Ultra Penetração (P12-P14)"
+        "C1 (P1-P4)", 
+        "C2 (P5-P8)", 
+        "C3 (P12-P14)"
     ]
 
     if df_demo_grup.empty:
@@ -4646,22 +4766,22 @@ def graph_100_conjuntos(folder_path=OUTPUT_DIR, valores_analise_tuple=None):
 
 
 def main():
-    clean_test_folder(OUTPUT_DIR)
+    # clean_test_folder(OUTPUT_DIR)
 
-    func_excl = ["80A", "100", "100_conjuntos"]
-    for i, func in enumerate(func_excl):
-        func = "graph_" + func
-        func_excl[i] = func
+    # func_excl = ["80A", "80B", "100", "100_conjuntos"]
+    # for i, func in enumerate(func_excl):
+    #     func = "graph_" + func
+    #     func_excl[i] = func
 
-    for func in globals():
-        if func in func_excl: continue
-        elif func.startswith("graph_") and callable(globals()[func]):
-            print(f"Criando gráfico: {func}...")
-            globals()[func]()
+    # for func in globals():
+    #     if func in func_excl: continue
+    #     elif func.startswith("graph_") and callable(globals()[func]):
+    #         print(f"Criando gráfico: {func}...")
+    #         globals()[func]()
 
-    print("\n--------------------------------------------------")
-    print("🎯 Fase Base Concluída. A iniciar Análise de Perfis Avançada...")
-    print("--------------------------------------------------")
+    # print("\n--------------------------------------------------")
+    # print("🎯 Fase Base Concluída. A iniciar Análise de Perfis Avançada...")
+    # print("--------------------------------------------------")
     
     # 3. Executar a sequência analítica correta e controlada no fim
     
@@ -4676,16 +4796,17 @@ def main():
     # Nota: Em Python, os índices 8, 9 e 10 correspondem ao 9º, 10º e 11º elemento (P9, P10, P11)
     if len(vals) >= 11:
         perfis_max = dict([
-            (9, perfis[9]), 
             (10, perfis[10]), 
-            (11, perfis[11])
+            (11, perfis[11]), 
+            (12, perfis[12])
         ])
-        print("\n🔎 A focar inspeção detalhada individual nos picos máximos (P9, P10, P11)...")
+        print("\n🔎 A focar inspeção detalhada individual nos picos máximos (P10, P11, P12)...")
         graph_100(OUTPUT_DIR, perfis=perfis_max)
     else:
         print("\n⚠️ Alerta: Menos de 11 perfis detetados. A correr o graph_100 para todas as barras.")
         graph_100(OUTPUT_DIR, perfis=perfis)
-        
+    
+    graph_80B()
     print("Gráficos criados com sucesso em:", OUTPUT_DIR)
     return 0
 
