@@ -1,6 +1,7 @@
 import rasterio
+from rasterio.warp import reproject, Resampling
 from rasterio import features
-from rasterio.plot import show
+from rasterio.plot import plotting_extent, show
 from rasterio.mask import mask
 import json
 import geopandas as gpd
@@ -9,17 +10,29 @@ from matplotlib import pyplot as plt
 import numpy as np
 import cv2
 import os
+import math
+
+import matplotlib.pyplot as plt
+
 
 
 def vector_map(geojson_directory):
-    districts_gdf = gpd.read_file(geojson_directory)  # Ficheiro com mapa de distritos, já está em formato WGS84
+    districts_gdf = gpd.read_file(geojson_directory, layer='cont_distritos')
+
+    #Reprojeção do mapa
+    if districts_gdf.crs != "EPSG:4326":
+        districts_gdf = districts_gdf.to_crs("EPSG:4326")
+
+    districts_gdf = districts_gdf.rename(columns={'distrito': 'name'})
     districts_gdf = districts_gdf[~districts_gdf['name'].isin(['Azores', 'Madeira'])]
-    print(districts_gdf.geometry.head())
-    portugal_geom = [districts_gdf.union_all().buffer(0.1)]
-    print("Função Vector_map completada")
+
+    districts_gdf = districts_gdf.dissolve(by='name', as_index=False)
+
+    #Dissolver os diferentes distritos num só portugal
+    portugal_geom = [districts_gdf.geometry.union_all()]
+
     district_names_series = districts_gdf['name']
     return districts_gdf, portugal_geom, district_names_series
-
 
 def manipulate_raster_solar(solar_directory, portugal_geom):
     with rasterio.open(solar_directory) as src: #Ficheiro com dados de radiação solar médios(kWh)
@@ -34,8 +47,34 @@ def manipulate_raster_solar(solar_directory, portugal_geom):
         print("Função Manipulate_raster_solar completada completada")
         return solar_shape, solar_transform, solar_array
 
+def manipulate_raster_OPTA(opta_directory, solar_shape, solar_transform):
+    with rasterio.open(opta_directory) as src:
+        opta_array = np.empty(solar_shape, dtype='float32')
+        
+        reproject(
+            source=rasterio.band(src, 1),
+            destination=opta_array,
+            src_transform=src.transform,
+            src_crs=src.crs,
+            dst_transform=solar_transform,
+            dst_crs=src.crs,
+            resampling=Resampling.bilinear
+        )
+
+        #Subsituição de -9999 por 0
+        opta_array = np.where(opta_array == src.nodata, 0.0, opta_array)
+        opta_array = np.where(opta_array < -100, 0.0, opta_array)
+
+        #Mapa da área real que 1m2 de painel útil ocupa
+        module_footprint_array = 1.65 / np.round(1.65 * np.cos(np.radians(opta_array)), 2)
+        module_footprint_array = np.where(opta_array == 0.0, 0.0, module_footprint_array)
+
+        print("Inclinação optimal máxima no país: np.max(OPTA_array)")
+
+        return opta_array,module_footprint_array
 
 def manipulate_geojson_buildings(buildings_directory, solar_shape, solar_transform):
+
 
     if not os.path.exists("portugal_mainland_buildings.parquet"):
         ##isto gerava a versão com clip dos telhados
@@ -45,28 +84,59 @@ def manipulate_geojson_buildings(buildings_directory, solar_shape, solar_transfo
 
     buildings_gdf = gpd.read_parquet(buildings_directory)
 
+    #vista de olhos
+    print(buildings_gdf.describe())
+    print(buildings_gdf.isnull().sum())
+    for col in ['roof_shape', 'roof_material']:
+        if col in buildings_gdf.columns:
+            print(f"\n--- {col} ---")
+            print(buildings_gdf[col].value_counts(normalize=True).head(10))
+
+
+    viable_25 = [None, 'apartments', 'roof', "house", "hotel", "residential", "silo", "detached", "carport", "greenhouse", "hut", "farm", "semidetached_house", "cabin", "bungalow", "allotment_house",
+                 "dormitory", "static_caravan"]
+    viable_40 = ["public", "industrial", "transportation", "retail", "commercial", "school", "warehouse", "shed", "hospital", "service",
+                 "storage_tank", "train_station", "garage", "bridge", "stable", "grandstand", "farm_auxiliary", "pavilion", "office", "library", "kiosk", "cowshed", "barn",
+                 "garages", "kindergarten", "post_office", "government", "toilets", "parking", "sports_centre", "sports_hall", "stadium", "fire_station", "college", "university",
+                 "hangar", "supermarket", "civic", "bunker", "guardhouse", "outbuilding", "sty", "wayside_shrine", "manufacture", "military", "factory", "boathouse"]
+    not_viable = ["church", "terrace", "chapel", "transformer_tower", "religious", "monastery", "ger", "synagogue", "temple", "cathedral", "mosque", "wayside_shrine", "digester", "shrine", "houseboat", "presbytery", "bridge_structure"]
+
     buildings_gdf.crs = "EPSG:4326"
     print(f"Total estimated buildings in Portugal: {len(buildings_gdf)}")
 
+    #ver as porções da área
+    areas_in_sqm = buildings_gdf.to_crs(epsg=3763).geometry.area
+
+    buildings_gdf['category'] = 'not_viable'
+    buildings_gdf.loc[buildings_gdf['class'].isin(viable_25), 'category'] = 'residential'
+    buildings_gdf.loc[buildings_gdf['class'].isin(viable_40), 'category'] = 'commercial'
+
+    area_stats = areas_in_sqm.groupby(buildings_gdf['category']).sum()
+
+    print("Area by category (in m2):")
+    print(area_stats)
 
     if not os.path.exists("portugal_building_mask.tif"):
+        "portugal building mask not found, calculating: \n"
         if buildings_gdf.crs != "EPSG:4326":
             buildings_gdf = buildings_gdf.to_crs("EPSG:4326")
         #Esta linha simplesmente multiplica os píxeis por 10
-        fine_shape = (solar_shape[0] * 25, solar_shape[1] * 25)
-        #esta linha mantém a origem do mapa, mas muda os steps de cada pixel para um décimo. como há 10x píxeis, fica 10/10==1 vezes o tamanho original
-        fine_transform = solar_transform * solar_transform.scale(1 / 25, 1 / 25)
+        fine_shape = (solar_shape[0] * 100, solar_shape[1] * 100)
+        #esta linha mantém a origem do mapa, mas muda os steps de cada pixel para uma fração. como há 10x píxeis, fica 10/10==1 vezes o tamanho original
+        fine_transform = solar_transform * solar_transform.scale(1 / 100, 1 / 100)
+
+        buildings_gdf['usable_fraction'] = buildings_gdf["class"].map(lambda x: 0.4 if x in viable_40 else 0.25 if x in viable_25 else 0.0)
 
         #isto cria o mapa rasterizado com píxeis mais pequenos
         fine_mask = features.rasterize(
-            [(geom, 1) for geom in buildings_gdf.geometry],
+            ((row.geometry, row.usable_fraction) for row in buildings_gdf.itertuples()),
             out_shape=fine_shape,
             transform=fine_transform,
-            fill=0,
-            dtype='uint8')
+            fill=0.0,
+            dtype='float32'
+        )
 
-
-        fractional_mask = cv2.resize(#isto vai agregar a máscara, cada 10x10 píxeis tornam-se 1
+        fractional_mask = cv2.resize(#isto vai agregar a máscara, cada 25x25 píxeis tornam-se 1
             fine_mask.astype('float32'),#conversão de binário para float
             (solar_shape[1], solar_shape[0]),#Mudança para a escala do mapa da radiação
             interpolation=cv2.INTER_AREA#isto é a parte que especifica que estamos a fazer a média para cada píxel, em vez de a maioria
@@ -125,54 +195,74 @@ def manipulate_geojson_buildings(buildings_directory, solar_shape, solar_transfo
 
 
 def calculate_and_save_potential(solar_array, building_mask, transform):
+    ###Transformação para m2 para os cálculos
+    height, width = solar_array.shape
+    #estes são os tamanohs dos píxeis no sistema de coordenadas WGS84, para fazer cálculos
+    deg_lon_step = abs(transform[0])
+    deg_lat_step = abs(transform[4])
+    pixel_height_meters = deg_lat_step * 111132.0 #Como são expressos em degraus, e cada degrau de latitude é 111132m, para a latitude é só necessário multiplicar, porque é constante
+    #Aqui encontramos as latitudes das diferentes linhas do mapa
+    row_indices = np.arange(height)
+    max_y_height = transform[3]
+    row_latitudes = max_y_height - (deg_lat_step * (row_indices + 0.5))
+    #row_latitudes tem as latitudes dos píxeis. isto é convertido para radianos. Calculamos o cosseno deste ângulo para saber a sua proporção relativa ao equador. depois multiplicamos pelo tamanho de um degrau no equador. Assim tempos o comprimento lateral de um grau para os píxeis. Por fim multiplicamos pelo número de graus do píxel.
+    pixel_widths_meters = np.cos(np.radians(row_latitudes)) * 111412.0 * deg_lon_step
+    pixel_area_matrix = pixel_widths_meters[:, np.newaxis] * pixel_height_meters #Conversão de 1D para 2D
 
-    # --- CONSTANTS ---
-    # Fraction of roof area actually usable for PV (e.g., 0.75 = 25% is blocked)
-    USABLE_FRACTION = 0.25
-    #Solar panels are large, about let's say 7m², so for every square meter you have 1/7 solar panels
-    PANEL_SiZE = 1*1.6
-    #Solar efficiency
-    KWP=0.45
+    ###CONSTANTES
+    ##Aqui registam-se as constantes necessárias para modificar os cálculos de energia potencial
+    #Aqui assume-se uma eficiência igual àquela utilizada pelo DBSM R
+    efficiency_percentage = 0.22
+    ##Para além disso, PVOUT assume a instalação de painéis solares de nível industrial, montados ao ângulo ótimo e virados para sul. Realisticamente, os telhados residênciais requererão uma inclinação mais realista de 20%, resultando numa perda por volta de 3%
+    tilt_mismatch_factor = 0.97
+    ##Agora, fazem-se os raios de acordo com a tabela deles em https://globalsolaratlas.info/support/methodology
+    inv_euro_eff = 95.9 / 97.8
+    soiling_loss = (100-4.5) / (100-3.5)
+    cable_dc_loss = (100-1) / (100-2)
+    mismatch_loss = (100-0.8)/(100-0.3)
+    transformer_loss = (100) / (100-0.9)
+    cable_ac_loss = (100-0.2) / (100-0.5)
+    availability = 0.97 / 0.995
+
+    #isto toma em conta a inclinação e o efeito que isso tem na área instalada.
+    footprint_factor = 1.65 / round(1.65*math.cos(math.radians(20)),2)
+    #combinando isto tudo, dá cerca de 96%
+    industrial_to_residential = inv_euro_eff * soiling_loss * cable_dc_loss * mismatch_loss * transformer_loss * cable_ac_loss * availability
+    print(industrial_to_residential)
 
     print("Calculating potential energy...")
 
-    # Element-wise multiplication: Solar (kWh/m2) * Mask (Fractional Area) * Usability
-    # Result is in kWh per pixel
-    potential_energy = solar_array * building_mask * USABLE_FRACTION * 800*800 / PANEL_SiZE * KWP
-    potential_energy = solar_array * building_mask * USABLE_FRACTION * 220000
+    potential_energy = solar_array * building_mask * pixel_area_matrix * efficiency_percentage * footprint_factor * tilt_mismatch_factor * industrial_to_residential #22% eficácia implica 0.22 kWp/m²
+
+
+
     potential_energy = np.nan_to_num(potential_energy, nan=0.0)
     potential_energy = np.where(potential_energy < 1e-5, 0, potential_energy)
 
-    #potential_energy = gpd.read_parquet(output_filename)
     return potential_energy
 
 
-def radiation_map():
-    fig, ax = plt.subplots(figsize=(7, 12))
-
+def pvout_map():
+    fig, ax = plt.subplots(figsize=(7, 13))
     plot_data = np.where(solar_array < 10, np.nan, solar_array)
-    print(np.nanmax(plot_data), "Máximo")
-    im = show(plot_data, transform=solar_transform, ax=ax, cmap='YlOrRd')
+    max_val = np.nanmax(plot_data)
+    print(max_val, "Máximo")
+    extent = plotting_extent(plot_data, transform=solar_transform)
+    im = ax.imshow(plot_data, extent=extent, cmap='YlOrRd', vmin=1200, vmax=1800)
+    cbar = fig.colorbar(im, ax=ax, fraction=0.046, pad=0.04, extend='both')
+    cbar.set_label('Produtividade anual específica (kWh/kWp)', fontsize=14, rotation=270, labelpad=20)
+    districts_gdf.boundary.plot(ax=ax, edgecolor='black', linewidth=0.7)
+    ax.set_title("Produtividade específica anual (kWh/kWp)")
 
-    cbar = fig.colorbar(im.get_images()[0], ax=ax, fraction=0.046, pad=0.04)
-    cbar.set_label('Yearly PV Power Potential (kWh/m²)', rotation=270, labelpad=20)
-    districts_gdf.boundary.plot(ax=ax, edgecolor='black', linewidth=1)
-
-    ax.set_title("Solar Potential Pixels vs. District Boundaries")
-    plt.savefig("mapa_rad.png")
-    plt.show()
+    plt.savefig("mapa_rad.png", bbox_inches='tight')
     plt.close()
     return
 
 
-def make_plot_raster_under_vectors(fractional_mask, solar_transform, buildings_gdf, x_zoom, y_zoom):
+def make_plot_raster_under_vectors(fractional_mask, solar_transform, buildings_gdf, x_zoom, y_zoom, local):
     fig, ax = plt.subplots(figsize=(12, 12))
     ext = rasterio.plot.plotting_extent(fractional_mask, solar_transform)
 
-    # --- THE CHANGE IS HERE ---
-    # 1. Do NOT use np.ma.masked_where. Use the raw array.
-    # 2. Use 'Blues' as you requested for that strong blue look.
-    # 3. Set vmin=0 so that 0% coverage is the lightest blue, not white.
     im = ax.imshow(
         fractional_mask,
         extent=ext,
@@ -182,7 +272,6 @@ def make_plot_raster_under_vectors(fractional_mask, solar_transform, buildings_g
         vmin=0,
         vmax=1
     )
-    # ---------------------------
 
     buildings_gdf.geometry.boundary.plot(
         ax=ax,
@@ -194,27 +283,19 @@ def make_plot_raster_under_vectors(fractional_mask, solar_transform, buildings_g
     ax.set_xlim(x_zoom)
     ax.set_ylim(y_zoom)
 
-    plt.colorbar(im, ax=ax, label='Building Density (Fraction)')
-    ax.set_title("Overlay: Building Vector Outlines on Fractional Mask")
-    plt.savefig("building_density_overlay.png")
+    plt.colorbar(im, ax=ax, label='Densidade de prédios (Fração)', pad = 0.1)
+    ax.set_title(f"Vetores de prédios sobrepostos num mapa de {local}")
+    plt.savefig(f"building_density_overlay_{local}.png")
 
 
 def plot_fractional_raster(mask_array, transform, solar_array, title, name):
-    # 1. Clean data
     data = np.nan_to_num(mask_array, nan=0.0)
     data[data < 1e-5] = 0.0
 
-    # 2. THE FIX: Create an "Ocean Mask"
-    # We look at the original solar_array. If the solar value is <= 0
-    # or equal to that e-38 constant, it's the ocean.
     ocean_mask = (solar_array <= 1e-30)
 
-    # 3. Apply the ocean mask only
-    # This keeps land-zeros as 0.0 (dark) but makes ocean NaNs/Zeros transparent
     display_data = np.ma.masked_where(ocean_mask, data)
-
     fig, ax = plt.subplots(figsize=(10, 15), facecolor='white')
-
     im = ax.imshow(display_data,
                    extent=rasterio.plot.plotting_extent(data, transform),
                    cmap='Blues',
@@ -234,13 +315,12 @@ def plot_fractional_raster(mask_array, transform, solar_array, title, name):
 
 
 def sum_potential_by_district(potential_array, transform, districts_gdf):
-    # 1. We must temporarily "wrap" the array as a raster dataset for masking
-    # We'll use an in-memory dataset to keep it fast
+    #raster temporário
     from rasterio.io import MemoryFile
 
     results = []
 
-    # Prepare metadata for the memory file
+    #metadadis di memfuke
     height, width = potential_array.shape
     new_dataset_meta = {
         'driver': 'GTiff',
@@ -257,32 +337,25 @@ def sum_potential_by_district(potential_array, transform, districts_gdf):
         with memfile.open(**new_dataset_meta) as dataset:
             dataset.write(potential_array, 1)
 
-            # 2. Iterate through each district
             for _, row in districts_gdf.iterrows():
                 district_name = row['name']
                 geom = [row['geometry']]
 
                 try:
-                    # Mask the raster to the district geometry
-                    # crop=True keeps the extracted array small and fast
                     out_image, _ = mask(dataset, geom, crop=True, nodata=0)
 
-                    # Sum the values (kWh)
                     total_potential = out_image.sum()
                     results.append({'district': district_name, 'total_kWh': total_potential})
 
                 except ValueError:
-                    # Handles cases where a district might fall outside the raster bounds
                     results.append({'district': district_name, 'total_kWh': 0})
 
-    # 3. Return as a nicely sorted DataFrame
     summary_df = pd.DataFrame(results).sort_values(by='total_kWh', ascending=False)
 
 
     return summary_df
 
-
-# Esta função é para estimar energia aproveitada por kW em cada distrito, em média. varia bastante mas deve ser melhor do que as estações do ipma pois é mais abrangente
+#Esta função é para estimar energia aproveitada por kW em cada distrito, em média. varia bastante mas deve ser melhor do que as estações do ipma pois é mais abrangente
 def average_radiation_by_district(solar_array, transform, districts_gdf):
     from rasterio.io import MemoryFile
 
@@ -329,37 +402,61 @@ def average_radiation_by_district(solar_array, transform, districts_gdf):
     result.to_csv("estimativas_rad_raster.csv")
     return result
 
-
 def main():
-    # Call the functions
-
-    districts_gdf, portugal_geom, district_names_series = vector_map("pt.json")
+    plt.rcParams.update({
+    'font.size': 20,
+    'axes.titlesize': 23,
+    'axes.labelsize': 14,
+    'xtick.labelsize': 12,
+    'ytick.labelsize': 12,
+    'figure.titlesize': 60,
+    "axes.titlepad": 20
+    })
+    
+    districts_gdf, portugal_geom, district_names_series = vector_map("Continente_CAOP2025.gpkg")
     solar_shape, solar_transform, solar_array = manipulate_raster_solar("PVOUT.tif", portugal_geom)
+    OPTA_array, footprint = manipulate_raster_OPTA("OPTA.tif", solar_shape=solar_shape, solar_transform=solar_transform)
     print(f"DEBUG: Min={np.nanmin(solar_array)}, Max={np.nanmax(solar_array)}")
     buildings_gdf, building_mask = manipulate_geojson_buildings("portugal_mainland_buildings.parquet", solar_shape, solar_transform)
     potential_energy_array = calculate_and_save_potential(solar_array,building_mask, solar_transform)
 
-    radiation_map()
+
+    #Chamar tudo
+    pvout_map()
     plot_fractional_raster(building_mask, solar_transform, solar_array, "buildings", "buildings.png")
     plot_fractional_raster(potential_energy_array, solar_transform, solar_array, "Solar Potential: Land Only", "Solar potential.png")
-    make_plot_raster_under_vectors(building_mask, solar_transform, buildings_gdf, [-9.18, -9.10], [38.70, 38.76])
-    make_plot_raster_under_vectors(building_mask, solar_transform, buildings_gdf, [-9.7, -6.0], [36.8, 42.2])
+    make_plot_raster_under_vectors(building_mask, solar_transform, buildings_gdf, [-9.18, -9.10], [38.70, 38.76], "Lisboa")
+    make_plot_raster_under_vectors(building_mask, solar_transform, buildings_gdf, [-9.7, -6.0], [36.8, 42.2], "Portugal")
 
-    print(sum_potential_by_district(potential_energy_array, solar_transform, districts_gdf))
+
 
     summary_results = sum_potential_by_district(potential_energy_array, solar_transform, districts_gdf)
     total_national_kwh = summary_results['total_kWh'].sum()
 
     print(f"Total National Potential: {total_national_kwh:.2e} kWh")
     print(f"Total National Potential: {total_national_kwh / 1e9:.2f} TWh")
+    print(f"Total: {total_national_kwh:.0f} kWh")
+    print(sum_potential_by_district(potential_energy_array, solar_transform, districts_gdf))
+
 
     avg_solar_df = average_radiation_by_district(solar_array, solar_transform, districts_gdf)
 
     print("--- Average Solar Radiation by District (kWh/m²/year) ---")
     print(avg_solar_df.to_string(index=False))
 
-    return 0
 
+    #tipos de prédios por contribuição para a área
+    percentage_breakdown = buildings_gdf['class'].value_counts(normalize=True, dropna=False) * 100
 
-if __name__ == "__main__":
-    main()
+    print("Percentage of building types:")
+    print(percentage_breakdown.head(20)) # Shows the top 20, including None/NaN
+
+    direction_breakdown = buildings_gdf['roof_shape'].value_counts(normalize=True, dropna=False) * 100
+
+    print("Percentage distribution of roof_shape:")
+    print(direction_breakdown)
+
+    print("end")
+
+    print(np.unique(OPTA_array))
+    print(np.unique(footprint))
