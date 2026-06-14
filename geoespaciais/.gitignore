@@ -1,0 +1,15 @@
+# Python ignores
+__pycache__/
+*.pyc
+venv/
+.env
+
+# Docker ignores
+.dockerignore
+
+# Data/OS ignores
+.DS_Store
+*.tif
+*.tiff
+*.csv
+data/

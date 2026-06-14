@@ -1,8 +1,18 @@
-Esta pasta é para a estimação do máximo de potencial para produção de energia fotovoltaíca.
-Os datasets, disponíveis no hugging face, são um mapa raster de kWh/kWp, 2 metades do mapa de telhados em portugal, e os polígonos do mapa do país em si.
-Os dados estão disponíveis em https://huggingface.co/datasets/Litroso/PFACD/tree/main
-Os dados devem ser instalados para esta pasta.
+Esta pasta é dedicada à estimação do potencial máximo para produção de energia fotovoltaica em Portugal.
+Datasets Utilizados
+Mapas Raster: Potencial solar em kWh/kWp, ângulo ótimo de instalação em graus do Global Solar Atlas.
+Geometria de Edifícios: Dataset de pegadas de edifícios (dividido em dois ficheiros, proveniente da Overture Maps).
+Limites Administrativos: Polígonos de referência do território nacional da CAOP.
 Para instalar as dependências, corre pip install -r requirements.txt
+OU(recomendado devido a dependência do GDAL)
+docker build -t geoespaciais-app .
 Como correr os ficheiros:
-corre generateparq.py, depois geoespacial.py.
-
+corre generateparq.py, depois geoespacial.py. geoespacial _w_dbsm.py não depende desta ordem.
+Para Linux/MacOS:
+docker run --rm -v "$(pwd):/app" -w /app geoespaciais-app python3 generateparq.py
+docker run --rm -v "$(pwd):/app" -w /app geoespaciais-app python3 geoespacial.py
+docker run --rm -v "$(pwd):/app" -w /app geoespaciais-app python3 geoespacial_w_dbsm.py
+Para Windows:
+docker run --rm -v "${PWD}:/app" -w /app geoespaciais-app python3 generateparq.py
+docker run --rm -v "${PWD}:/app" -w /app geoespaciais-app python3 geoespacial.py
+docker run --rm -v "${PWD}:/app" -w /app geoespaciais-app python3 geoespacial_w_dbsm.py
