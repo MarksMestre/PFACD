@@ -45,17 +45,13 @@ FROM "dbsm-portugal-R2025"
 df_stats = pd.read_sql_query(query, conn)
 conn.close()
 
-# Print results with formatting
+
 total_mwh = df_stats['total_mwh_year'][0]
 print(f"--- Solar Potential Summary ---")
 print(f"Total Buildings Analyzed: {df_stats['total_buildings'][0]:,}")
 print(f"Total Solar Potential:    {total_mwh:,.2f} MWh/year")
 print(f"Average per Building:     {df_stats['avg_mwh_year'][0]:.2f} MWh/year")
-
-# Contextualizing the number:
-# 1 GWh = 1,000 MWh. 1 TWh = 1,000,000 MWh.
-if total_mwh > 1_000_000:
-    print(f"In Terawatt-hours:        {total_mwh / 1_000_000:.2f} TWh/year")
+print(f"In Terawatt-hours:        {total_mwh / 1_000_000:.2f} TWh/year")
 
 def vector_map(geojson_directory):
     districts_gdf = gpd.read_file(geojson_directory)  # Ficheiro com mapa de distritos, já está em formato WGS84
@@ -71,8 +67,7 @@ districts_gdf, portugal_geom, district_names_series = vector_map("pt.json")
 
 
 
-# 2. Ensure CRS consistency
-# If your vector_map returns WGS84, the buildings must be WGS84 too
+#Consistência CRS
 if gdf.crs != districts_gdf.crs:
     print("CRS mismatch", districts_gdf.crs, gdf.crs)
     gdf = gdf.to_crs(districts_gdf.crs)
@@ -83,7 +78,6 @@ joined_gdf = gpd.sjoin(gdf, districts_gdf[['name', 'geometry']], how='left', pre
 #Soma por distrito
 district_potential = joined_gdf.groupby('name')['rooftop_pv_potential_MWh_per_y'].sum().reset_index()
 
-# 5. Format and Print Results
 district_potential['TWh_per_year'] = district_potential['rooftop_pv_potential_MWh_per_y'] / 1_000_000
 print(district_potential[['name', 'TWh_per_year']].sort_values(by='TWh_per_year', ascending=False))
 district_potential = district_potential.rename(columns={'name': 'Distrito'})
