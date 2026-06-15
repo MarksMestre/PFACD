@@ -186,8 +186,8 @@ Gera visualizações a partir dos dados processados.
    - `python __configure__\main.py`
    - depois `python __pipeline__\main.py`
 4. Para executar o pipeline completo:
-
-   - `python main_without_geo.py`
+   - [TIAGO COLOCA INSTRUÇÕES AQUI] 
+   - Depois de baixar as bases de dados geoespaciais corra `python main.py` no terminal. O script irá automaticamente criar o Docker Image e abrir o Docker backend por si (tem de ter o Docker instalado)
 
 ### Execução de módulos independentes
 - Meteorologia: `python meteorology\main.py`
