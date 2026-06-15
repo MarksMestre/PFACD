@@ -185,7 +185,9 @@ Gera visualizações a partir dos dados processados.
 3. Se preferir configurar manualmente:
    - `python __configure__\main.py`
    - depois `python __pipeline__\main.py`
-4. Para executar o pipeline completo:
+
+
+### Para executar o pipeline completo:
    - [TIAGO COLOCA INSTRUÇÕES AQUI] 
    - Depois de baixar as bases de dados geoespaciais corra `python main.py` no terminal. O script irá automaticamente criar o Docker Image e abrir o Docker backend por si (tem de ter o Docker instalado)
    - Os gráficos resultantes do processamento geoespacial irão ser depositados na pasta [TIAGO METE A PASTA RESULTANTE]
@@ -212,8 +214,3 @@ O módulo geoespacial usa Docker para garantir dependências como GDAL.
 - O `requirements.txt` principal prepara o ambiente de execução do projeto.
 - O `geoespaciais/requirements.txt` documenta dependências específicas do módulo espacial.
 - Se tiver problemas com Docker, use `main_without_geo.py` para correr o pipeline sem a etapa geoespacial.
-
-
-
-
-
