@@ -7,7 +7,12 @@ import scipy
 import seaborn as sns
 import sys
 import numpy as np
-from clean_princ_test_folder import main as clean_test_folder
+
+# Sobe até a root do projeto
+base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.insert(0, base_path)
+
+from __graficos__.clean_princ_test_folder import main as clean_test_folder
 
 import warnings
 
@@ -4676,8 +4681,8 @@ def graph_100_conjuntos(folder_path=OUTPUT_DIR, valores_analise_tuple=None):
             return "C1 (P1-P4)"
         elif 5 <= num_p <= 8:
             return "C2 (P5-P8)"
-        elif 12 <= num_p <= 14:
-            return "C3 (P12-P14)"
+        elif 12 <= num_p <= 17:
+            return "C3 (P12-P17)"
         
         # P9, P10 e P11 retornam None e ficam fora desta análise agregada
         return None
@@ -4697,7 +4702,7 @@ def graph_100_conjuntos(folder_path=OUTPUT_DIR, valores_analise_tuple=None):
     ordem_grupos = [
         "C1 (P1-P4)", 
         "C2 (P5-P8)", 
-        "C3 (P12-P14)"
+        "C3 (P12-P17)"
     ]
 
     if df_demo_grup.empty:
