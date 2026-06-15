@@ -188,6 +188,7 @@ Gera visualizações a partir dos dados processados.
 4. Para executar o pipeline completo:
    - [TIAGO COLOCA INSTRUÇÕES AQUI] 
    - Depois de baixar as bases de dados geoespaciais corra `python main.py` no terminal. O script irá automaticamente criar o Docker Image e abrir o Docker backend por si (tem de ter o Docker instalado)
+   - Os gráficos resultantes do processamento geoespacial irão ser depositados na pasta [TIAGO METE A PASTA RESULTANTE]
 
 ### Execução de módulos independentes
 - Meteorologia: `python meteorology\main.py`
