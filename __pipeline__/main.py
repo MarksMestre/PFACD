@@ -10,6 +10,7 @@ sys.path.insert(0, os.path.abspath(os.path.dirname(os.path.dirname(__file__))))
 from meteorology.main import main as metereology
 from demography.main import main as demography
 from economy.main import main as economy
+from __graficos__.main import main as graficos
 
 def abrir_e_esperar_docker():
     """Garante que o Docker Desktop está aberto e o motor está ativo."""
@@ -133,6 +134,8 @@ def main():
         print("Geração de dados geoespaciais terminada com sucesso!")
     else:
         print("Aviso: A componente geoespacial foi ignorada ou falhou.")
+
+    graficos()
 
 
 if __name__ == "__main__":

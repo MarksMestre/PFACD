@@ -8,6 +8,7 @@ sys.path.insert(0, os.path.abspath(os.path.dirname(os.path.dirname(__file__))))
 from meteorology.main import main as metereology
 from demography.main import main as demography
 from economy.main import main as economy
+from __graficos__.main import main as graficos
 
 def main():
     print(f"Iniciando a gerar os ficheiros do projeto")
@@ -25,6 +26,8 @@ def main():
     print("A gerar dados económicos")
     economy()
     print("Geração de dados económicos terminada")
+
+    graficos()
 
     finish_time = time.time()
     final_time = finish_time - start_time
