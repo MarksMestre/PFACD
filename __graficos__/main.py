@@ -4771,22 +4771,22 @@ def graph_100_conjuntos(folder_path=OUTPUT_DIR, valores_analise_tuple=None):
 
 
 def main():
-    # clean_test_folder(OUTPUT_DIR)
+    clean_test_folder(OUTPUT_DIR)
 
-    # func_excl = ["80A", "80B", "100", "100_conjuntos"]
-    # for i, func in enumerate(func_excl):
-    #     func = "graph_" + func
-    #     func_excl[i] = func
+    func_excl = ["80A", "80B", "100", "100_conjuntos"]
+    for i, func in enumerate(func_excl):
+        func = "graph_" + func
+        func_excl[i] = func
 
-    # for func in globals():
-    #     if func in func_excl: continue
-    #     elif func.startswith("graph_") and callable(globals()[func]):
-    #         print(f"Criando gráfico: {func}...")
-    #         globals()[func]()
+    for func in globals():
+        if func in func_excl: continue
+        elif func.startswith("graph_") and callable(globals()[func]):
+            print(f"Criando gráfico: {func}...")
+            globals()[func]()
 
-    # print("\n--------------------------------------------------")
-    # print("🎯 Fase Base Concluída. A iniciar Análise de Perfis Avançada...")
-    # print("--------------------------------------------------")
+    print("\n--------------------------------------------------")
+    print("🎯 Fase Base Concluída. A iniciar Análise de Perfis Avançada...")
+    print("--------------------------------------------------")
     
     # 3. Executar a sequência analítica correta e controlada no fim
     

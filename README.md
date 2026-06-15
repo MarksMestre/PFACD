@@ -137,71 +137,82 @@ PFACD
 ```
 
 ## Funcionalidades do Projeto
-O projeto PFACD estrutura-se em torno de três pilares funcionalidades principais:
+O PFACD é um ecossistema de dados para caracterizar o autoconsumo em Portugal. O projeto combina ingestão, validação e análise de dados meteorológicos, demográficos, económicos e geoespaciais.
 
-### 1. **Módulo Meteorológico (meteorology/)**
-Este módulo integra múltiplas fontes de dados meteorológicos e ferramentas de validação geoespacial:
+### Módulos principais
+- **`main.py`**: ponto de entrada principal. Cria/atualiza o ambiente virtual `.venv`, instala dependências e executa o pipeline completo.
+- **`__configure__/main.py`**: garante criação de `.venv`, instala `requirements.txt` e cria pastas necessárias.
+- **`__pipeline__/main.py`**: orquestra a execução dos módulos de meteorologia, demografia, economia, gráficos e geoespaciais.
 
-#### **CAMS (Copernicus Atmosphere Monitoring Service)**
-- **Recolha Automática de Dados**: Utiliza a CDS API para descarregar séries temporais especializadas e variáveis atmosféricas em diferentes resoluções temporais (1 dia, 1 mês)
-- **Processamento Paralelo**: Implementa otimizações de fluxo de dados através do módulo `data_api_opt.py` e `data_api_manual.py`, permitindo a ingestão eficiente de grandes volumes de dados
-- **Agregação Temporal**: O script `aggregation_day.py` consolida dados diários em períodos mais extensos (mensais, trimestrais, semestrais)
-- **Gestão de Estado**: Acompanhamento de progresso através de `progress.json` para garantir a recuperação resiliente de transferências interrompidas
-- **Validação de Integridade**: Testes comparativos através de `teste_same_files.py` para assegurar consistência dos dados
+### 1. Meteorologia (`meteorology/`)
+Este módulo trata a recolha e validação de dados climáticos.
+- **`meteorology/main.py`**: executa em sequência `IPMA`, `CAMS` e `METEOSTAT`.
+- **`meteorology/IPMA/`**: valida localizações e consolida informações oficiais do IPMA.
+- **`meteorology/CAMS/`**: recolhe séries temporais via CDS API, processa dados, agrega por período e valida consistência.
+- **`meteorology/METEOSTAT/`**: integra dados históricos complementares para validação e comparação.
 
-#### **IPMA (Instituto Português do Mar e da Atmosfera)**
-- **Validação Geoespacial**: Auditoria de precisão de localizações de estações meteorológicas contra registos oficiais do IPMA
-- **Reconciliação de Dados**: Identificação e resolução de conflitos de localização através de análise comparativa de coordenadas
-- **Mapeamento Visual**: Geração de mapas de conflito interativos (`conflict_maps.html`) para inspeção manual de discrepâncias
-- **Fusão de Dados**: Consolidação de informações oficiais e informações locais em registos unificados e validados
+### 2. Demografia (`demography/`)
+Avalia a evolução populacional e a densidade geográfica.
+- **`demography/main.py`**: executa em sequência `population_total` e `population_density`.
+- **`demography/population_total/`**: prepara dados, constrói modelos preditivos, valida previsões e gera relatórios.
+- **`demography/population_density/`**: limpa e analisa a densidade populacional em território nacional.
 
-#### **METEOSTAT**
-- **API de Dados Meteorológicos**: Integração de dados climatológicos históricos como fonte complementar de validação
+### 3. Economia (`economy/`)
+Processa informação de produção e custos energéticos.
+- **`economy/main.py`**: agrupa análises económicas e dados de custos por país e por ano.
+- Dados de entrada incluem ficheiros como `portugal_2018-2025_kW.csv`, `15paises_14anos_kW.csv` e `15paises_14anos_kWh.csv`.
 
-### 2. **Módulo de Análise Populacional (population/)**
-Ferramentas avançadas de análise demográfica com capacidades preditivas:
+### 4. Geoespaciais (`geoespaciais/`)
+Gera análises de potencial energético usando mapas raster e geometria territorial.
+- **`geoespaciais/main.py`** e `geoespaciais/Dockerfile` são usados para processamento geoespacial.
+- **`geoespaciais/generateparq.py`**: prepara ficheiros de dados espaciais.
+- **`geoespaciais/geoespacial.py`**: calcula métricas de produção fotovoltaica e exporta resultados.
+- **`geoespaciais/geoespacial_w_dbsm.py`**: executa análise adicional sem depender da ordem de execução dos restantes scripts.
 
-#### **Densidade Populacional**
-- **Análise Geoespacial**: Cálculo e visualização da distribuição espacial de população em território português
-- **Segmentação Regional**: Análise por unidades administrativas (NUTS) para compreender padrões concentração urbana
+### 5. Gráficos (`__graficos__/`)
+Gera visualizações a partir dos dados processados.
+- **`__graficos__/main.py`**: coordena a geração de gráficos.
+- **`__graficos__/graficos_principais.py`**: contém rotinas de plotagem e exporta imagens finais para `__graficos__/output/`.
 
-#### **População Total com Modelação Preditiva**
-- **Pipeline de Processamento**: Orquestração end-to-end de preparação, transformação e validação de dados (`pipeline.py`)
-- **Preparação de Dados**: Limpeza, normalização e engenharia de features para modelos machine learning (`data_preparation.py`)
-- **Previsão Demográfica**: Modelos preditivos de população para períodos futuros, validados contra previsões oficiais (`prediction_and_validation.py`)
-- **Visualização de Resultados**: Geração de gráficos e relatórios interativos para comunicação de insights (`results_visualization.py`)
-- **Integração NUTS**: Suporte a múltiplos anos de classificação NUTS (2021, 2024) para análise temporal consistente
+### Como executar o projeto (sem processamento geoespacial)
+1. Abra a pasta `PFACD` no seu terminal. Não mude para uma subpasta diferente.
+2. Execute o ponto de entrada principal:
+   - `python main_without_geo.py`
+   Isto:
+     - cria ou atualiza o ambiente virtual `.venv`
+     - instala dependências do `requirements.txt`
+     - executa o pipeline completo de meteorologia, demografia, economia, gráficos e geoespaciais
+3. Se preferir configurar manualmente:
+   - `python __configure__\main.py`
+   - depois `python __pipeline__\main.py`
+4. Para executar o pipeline completo:
 
-### 3. **Sistema de Configuração Centraizado**
-Infraestrutura transversal que suporta a execução coordenada do ecossistema:
+   - `python main_without_geo.py`
 
-#### **Configuração Centralizada (config.py)**
-- **Parametrização Unificada**: Definição centralizada de credenciais, endpoints de API, parâmetros de processamento
-- **Gestão de Ambientes**: Suporte a múltiplos ambientes (desenvolvimento, teste, produção)
-- **Validação de Configuração**: Verificação de integridade de parâmetros antes de execução
+### Execução de módulos independentes
+- Meteorologia: `python meteorology\main.py`
+- Demografia: `python demography\main.py`
+- Economia: `python economy\main.py`
+- Gráficos: `python __graficos__\main.py`
+- Geoespaciais (Docker recomendado): `python geoespaciais\main.py`
 
-#### **Gestão de Caminhos (paths.py)**
-- **Abstração de Estrutura**: Definição centralizada de caminhos do projeto para portabilidade cross-platform
-- **Validação de Diretórios**: Garantia de existência e acessibilidade de diretórios críticos
-- **Flexibilidade de Locais**: Suporte a diferentes estruturas de armazenamento local e remoto
+### Geoespaciais com Docker
+O módulo geoespacial usa Docker para garantir dependências como GDAL.
+1. Abra `geoespaciais/`.
+2. Construa a imagem:
+   - `docker build -t geoespaciais-app .`
+3. Execute um dos scripts:
+   - `docker run --rm -v "%cd%:/app" -w /app geoespaciais-app python generateparq.py`
+   - `docker run --rm -v "%cd%:/app" -w /app geoespaciais-app python geoespacial.py`
+   - `docker run --rm -v "%cd%:/app" -w /app geoespaciais-app python geoespacial_w_dbsm.py`
 
-### **Fluxo de Integração Transversal**
-O projeto implementa um fluxo coordenado onde:
-1. Os dados meteorológicos (CAMS, IPMA) são recolhidos, validados e preprocessados
-2. A população para 2025 é prevista e os dados demográficos são consolidados para futura integração
-3. Os modelos preditivos utilizam dados integrados para gerar previsões de consumo e produção energética
-
-Esta arquitetura modular e eficiente permite análises multi-dimensionais da transição energética portuguesa, focando na caracterização de
-Unidades de Produção para Autoconsumo (UPAC) com base em contextos meteorológicos, demográficos e territoriais.
+### Observações práticas
+- O `main.py` reinicia automaticamente dentro de `.venv` quando necessário.
+- O `requirements.txt` principal prepara o ambiente de execução do projeto.
+- O `geoespaciais/requirements.txt` documenta dependências específicas do módulo espacial.
+- Se tiver problemas com Docker, use `main_without_geo.py` para correr o pipeline sem a etapa geoespacial.
 
 
-## Fluxo de `script`
-
-
-1. Abra a pasta "PFACD". NOTA: Não altere a root para outra subpasta, mantenha-se nesta localização
-2. Corra o `config.py` com o Python. Isto gerará o ambiente virtual `.venv` e irá instalar as bibliotecas presentes no `requirements.txt`
-3. Se o `.venv` ainda não estiver ativado, ative. Se já estiver ativado, pular para passo 4.
-4. Corra o `generate_files.py` para gerar todos os ficheiros  
 
 
 
