@@ -877,14 +877,23 @@ make_choropleth(df_distrito[df_distrito["Trimestre"] == "2022T4"], "Potência To
 make_choropleth(df_distrito[df_distrito["Trimestre"] == "2025T4"], "Potência Total Instalada UPAC (kW)",
                 "Potência total instalada (UPACs) no último semestre de 2025", [0, 350000], "mapa_2025_potency.png")
 
+inv_euro_eff = 95.9 / 97.8
+soiling_loss = (100 - 4.5) / (100 - 3.5)
+cable_dc_loss = (100 - 1) / (100 - 2)
+mismatch_loss = (100 - 0.8) / (100 - 0.3)
+transformer_loss = (100) / (100 - 0.9)
+cable_ac_loss = (100 - 0.2) / (100 - 0.5)
+availability = 0.97 / 0.995
+inclination_mismatch = 0.97
+industrial_to_residential = inv_euro_eff * soiling_loss * cable_dc_loss * mismatch_loss * transformer_loss * cable_ac_loss * availability * inclination_mismatch
 df_injecao = df_distrito[df_distrito["Trimestre"] == "2024T4"]
 df_injecao = pd.merge(df_injecao, ler_csv_robusto("injecaoanual.csv"), on="Distrito", how = "left")
 df_injecao["injecao em 2024 (kWh)"] = pd.to_numeric(df_injecao["injecao em 2024 (kWh)"], errors="coerce")
 df_injecao = pd.merge(df_injecao, ler_csv_robusto("estimativas_rad_raster.csv"), on="Distrito", how = "left")
 df_injecao["Radiation"] = pd.to_numeric(df_injecao["Radiation"], errors="coerce")
 df_injecao.rename(columns={"Radiation": "kWh/kWp"}, inplace=True)
-df_injecao["Estimativa(kWh)_AC"] = df_injecao["Potência Total Instalada UPAC (kW)"] * df_injecao["kWh/kWp"] # Estimativa com base em E = Pac * Y
-df_injecao["Percentagem injetada"] = df_injecao["injecao em 2024 (kWh)"]/df_injecao["Estimativa(kWh)_AC"] * 100
+df_injecao["Estimativa(kWh)_AC"] = df_injecao["Potência Total Instalada UPAC (kW)"] * df_injecao["kWh/kWp"]  * industrial_to_residential # Estimativa com base em E = Pac * Y
+df_injecao["Percentagem injetada"] = df_injecao["injecao em 2024 (kWh)"]/(df_injecao["Estimativa(kWh)_AC"]) * 100
 df_injecao.to_csv("injecao_percentual.csv", index=False)
 
 
@@ -899,18 +908,23 @@ df_potencial_real["TWh_per_year"] = pd.to_numeric(df_potencial_real["TWh_per_yea
 df_potencial_real["Radiation"] = pd.to_numeric(df_potencial_real["Radiation"], errors="coerce")
 df_potencial_real.rename(columns={"Radiation": "kWh/kWp"}, inplace=True)
 
+
 #df_potencial_real["Estimativa(kWh)"] = df_potencial_real["Potência Total Instalada UPAC (kW)"] * df_potencial_real["kWh/kWp"] * 0.75 # Estimativa com base em E = P * G * PR
-df_potencial_real["Estimativa(kWh)_AC"] = df_potencial_real["Potência Total Instalada UPAC (kW)"] * df_potencial_real["kWh/kWp"] # Estimativa com base em E = Pac * Y
+df_potencial_real["Estimativa(kWh)_AC"] = df_potencial_real["Potência Total Instalada UPAC (kW)"] * df_potencial_real["kWh/kWp"] * industrial_to_residential# Estimativa com base em E = Pac * Y
 df_potencial_real["Estimativa(kWh)_DC"] = df_potencial_real["Estimativa(kWh)_AC"] * 1.2# Estimativa com base em E = Pdc *Y, onde Pdc = Pac * R. Em vez de fazermos do 0, multiplicamos só o anterior por 1.2
+
 
 
 df_potencial_real["kWh_per_year"] = df_potencial_real["TWh_per_year"] * 10**9
 df_potencial_real["Percentagem conseguida"] =  df_potencial_real["Estimativa(kWh)_DC"]/ df_potencial_real["kWh_per_year"] * 100
 print("National percentage attained: ", df_potencial_real["Estimativa(kWh)_DC"].sum() / df_potencial_real["kWh_per_year"].sum() * 100,"%")
-print(df_potencial_real["Estimativa(kWh)_DC"].sum()/10**9)
+print("Estimated sum TWh: ", df_potencial_real["Estimativa(kWh)_DC"].sum()/10**9)
 print(df_injecao["Potência Total Instalada UPAC (kW)"].sum() / 10**6)
-print(df_injecao["injecao em 2024 (kWh)"].sum() / df_injecao["Estimativa(kWh)_AC"].sum() * 100)
-
+print(df_injecao["injecao em 2024 (kWh)"].sum())
+print(df_injecao["Estimativa(kWh)_AC"].sum())
+print("Percentagem injetada: ",
+      (df_injecao["injecao em 2024 (kWh)"].sum() /
+      (df_injecao["Estimativa(kWh)_AC"].sum() + df_injecao["injecao em 2024 (kWh)"].sum())) * 100)
 # print(df[df["Trimestre"] == "2025T4"]["Número de instalacões"].sum())
 # print(df[df["Trimestre"] == "2025T4"]["Potência Total Instalada UPAC (kW)"].sum())
 
