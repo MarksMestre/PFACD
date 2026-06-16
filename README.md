@@ -191,6 +191,7 @@ Gera visualizações a partir dos dados processados.
    -Baixar as bases de dados necessárias para as operações geoespaciais localizadas em (https://huggingface.co/datasets/tiago-woodger/PFACD/tree/main) para a pasta geoespaciais
    - Depois de baixar as bases de dados geoespaciais corra `python main.py` no terminal. O script irá automaticamente criar o Docker Image e abrir o Docker backend por si (tem de ter o Docker instalado)
    - Os gráficos resultantes do processamento geoespacial irão ser depositados na pasta geoespaciais.
+   - Em casos de problemas em correr os scripts geoespaciais, existe um README separado nesta pasta.
 
 ### Execução de módulos independentes
 - Meteorologia: `python meteorology\main.py`
