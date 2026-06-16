@@ -166,8 +166,8 @@ Processa informação de produção e custos energéticos.
 Gera análises de potencial energético usando mapas raster e geometria territorial.
 - **`geoespaciais/main.py`** e `geoespaciais/Dockerfile` são usados para processamento geoespacial.
 - **`geoespaciais/generateparq.py`**: prepara ficheiros de dados espaciais.
-- **`geoespaciais/geoespacial.py`**: calcula métricas de produção fotovoltaica e exporta resultados.
-- **`geoespaciais/geoespacial_w_dbsm.py`**: executa análise adicional sem depender da ordem de execução dos restantes scripts.
+- **`geoespaciais/geoespacial.py`**: calcula a estimativa feita para o potencial fotovoltaíco produzido por telhados portugueses baseado em PVOUT.
+- **`geoespaciais/geoespacial_w_dbsm.py`**: calcula a estimativa feita para o potencial fotovoltaíco produzido por telhados portugueses de acordo com estimativas da JRC.
 
 ### 5. Gráficos (`__graficos__/`)
 Gera visualizações a partir dos dados processados.
@@ -188,9 +188,9 @@ Gera visualizações a partir dos dados processados.
 
 
 ### Para executar o pipeline completo:
-   - [TIAGO COLOCA INSTRUÇÕES AQUI] 
+   -Baixar as bases de dados necessárias para as operações geoespaciais localizadas em (https://huggingface.co/datasets/tiago-woodger/PFACD/tree/main) para a pasta geoespaciais
    - Depois de baixar as bases de dados geoespaciais corra `python main.py` no terminal. O script irá automaticamente criar o Docker Image e abrir o Docker backend por si (tem de ter o Docker instalado)
-   - Os gráficos resultantes do processamento geoespacial irão ser depositados na pasta [TIAGO METE A PASTA RESULTANTE]
+   - Os gráficos resultantes do processamento geoespacial irão ser depositados na pasta geoespaciais.
 
 ### Execução de módulos independentes
 - Meteorologia: `python meteorology\main.py`
